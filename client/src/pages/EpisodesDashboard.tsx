@@ -205,6 +205,9 @@ interface ContrarianIndividual {
   outreachAngle: string;
   platforms: { name: string; url: string }[];
   score: number;
+  email?: string;
+  twitter?: string;
+  linkedin?: string;
 }
 
 interface ExtractionResult {
@@ -392,7 +395,10 @@ const extractArguments = (text: string): ExtractionResult => {
           { name: "Substack", url: "https://garymarcus.substack.com" },
           { name: "Twitter/X", url: "https://twitter.com/GaryMarcus" }
         ],
-        score: -0.85
+        score: -0.85,
+        email: "gary.marcus@nyu.edu",
+        twitter: "@GaryMarcus",
+        linkedin: "garymarcus"
       },
       {
         name: "Emily Bender",
@@ -406,7 +412,10 @@ const extractArguments = (text: string): ExtractionResult => {
           { name: "Mastodon", url: "https://dair-community.social/@emilymbender" },
           { name: "University Page", url: "https://faculty.washington.edu/ebender/" }
         ],
-        score: -0.78
+        score: -0.78,
+        email: "ebender@uw.edu",
+        twitter: "@emilymbender",
+        linkedin: "emily-bender"
       }
     );
   }
@@ -425,7 +434,9 @@ const extractArguments = (text: string): ExtractionResult => {
           { name: "LinkedIn", url: "https://linkedin.com/in/piyushgupta" },
           { name: "DBS Insights", url: "https://www.dbs.com/insights" }
         ],
-        score: -0.72
+        score: -0.72,
+        email: "piyush.gupta@dbs.com",
+        linkedin: "piyushgupta"
       },
       {
         name: "Ho Kwon Ping",
@@ -439,7 +450,9 @@ const extractArguments = (text: string): ExtractionResult => {
           { name: "LinkedIn", url: "https://linkedin.com/in/hokwonping" },
           { name: "SMU Speaker", url: "https://www.smu.edu.sg" }
         ],
-        score: -0.65
+        score: -0.65,
+        email: "media@banyantree.com",
+        linkedin: "hokwonping"
       }
     );
   }
@@ -458,7 +471,10 @@ const extractArguments = (text: string): ExtractionResult => {
           { name: "Stanford Profile", url: "https://nbloom.people.stanford.edu" },
           { name: "Twitter/X", url: "https://twitter.com/I_Am_NickBloom" }
         ],
-        score: -0.58
+        score: -0.58,
+        email: "nbloom@stanford.edu",
+        twitter: "@I_Am_NickBloom",
+        linkedin: "nicholas-bloom"
       }
     );
   }
@@ -719,6 +735,10 @@ export default function EpisodesDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
   const [selectedTrendingTopic, setSelectedTrendingTopic] = useState<typeof trendingSGTopics[0] | null>(null);
+  const [emailDraftOpen, setEmailDraftOpen] = useState(false);
+  const [selectedIndividual, setSelectedIndividual] = useState<ContrarianIndividual | null>(null);
+  const [emailDraft, setEmailDraft] = useState("");
+  const [emailCopied, setEmailCopied] = useState(false);
 
   // Load episodes on mount
   useEffect(() => {
@@ -839,6 +859,63 @@ export default function EpisodesDashboard() {
       setCopied(true);
       toast.success("Results copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const generateEmailDraft = (individual: ContrarianIndividual) => {
+    const podcastName = "Front Row Challenge";
+    const hostName = "Keith Yap";
+    const episodeContext = selectedEpisode?.title || "our recent episode";
+    
+    const emailTemplate = `Subject: Invitation to Discuss ${individual.expertise} on ${podcastName}
+
+Dear ${individual.name.split(" ").pop()},
+
+I hope this email finds you well. My name is ${hostName}, and I'm the host of ${podcastName}, a podcast focused on bringing diverse perspectives to important conversations in technology, business, and innovation.
+
+I recently came across your work on ${individual.expertise.toLowerCase()}, and I was particularly struck by your perspective that "${individual.opposingPosition}" This viewpoint offers a compelling counterpoint to discussions we've been having on our show.
+
+In ${episodeContext}, we explored some ideas that I believe would benefit greatly from your unique perspective. ${individual.counterSummary}
+
+I would be honored to have you as a guest on our podcast to:
+• Share your insights on ${individual.expertise.toLowerCase()}
+• Discuss the nuances of your position
+• Engage in a thoughtful dialogue about the future of this space
+
+Our format is conversational and respectful - we value substantive debate over sensationalism. Episodes typically run 45-60 minutes and can be recorded remotely at your convenience.
+
+Would you be open to a brief call to discuss this opportunity? I'm flexible with timing and happy to work around your schedule.
+
+Thank you for considering this invitation. I look forward to the possibility of having you on the show.
+
+Best regards,
+${hostName}
+Host, ${podcastName}
+
+---
+Outreach Context: ${individual.outreachAngle}`;
+    
+    return emailTemplate;
+  };
+
+  const handleDraftEmail = (individual: ContrarianIndividual) => {
+    setSelectedIndividual(individual);
+    setEmailDraft(generateEmailDraft(individual));
+    setEmailDraftOpen(true);
+  };
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(emailDraft);
+    setEmailCopied(true);
+    toast.success("Email copied to clipboard");
+    setTimeout(() => setEmailCopied(false), 2000);
+  };
+
+  const handleOpenMailClient = () => {
+    if (selectedIndividual?.email) {
+      const subject = encodeURIComponent(`Invitation to Discuss ${selectedIndividual.expertise} on Front Row Challenge`);
+      const body = encodeURIComponent(emailDraft.replace(/^Subject:.*\n\n/, ""));
+      window.open(`mailto:${selectedIndividual.email}?subject=${subject}&body=${body}`, "_blank");
     }
   };
 
@@ -1458,6 +1535,47 @@ export default function EpisodesDashboard() {
                                 <Badge variant="outline" className="mb-3 bg-muted/50">
                                   {individual.expertise}
                                 </Badge>
+
+                                {/* Contact Information */}
+                                <div className="p-3 rounded bg-green-500/5 border border-green-500/20 mb-3">
+                                  <p className="text-sm font-medium flex items-center gap-2 mb-2">
+                                    <Mail className="w-4 h-4 text-green-400" />
+                                    Contact Information
+                                  </p>
+                                  <div className="flex flex-wrap gap-3 text-sm">
+                                    {individual.email && (
+                                      <a
+                                        href={`mailto:${individual.email}`}
+                                        className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                                      >
+                                        <Mail className="w-3 h-3" />
+                                        {individual.email}
+                                      </a>
+                                    )}
+                                    {individual.twitter && (
+                                      <a
+                                        href={`https://twitter.com/${individual.twitter.replace('@', '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                                      >
+                                        <Twitter className="w-3 h-3" />
+                                        {individual.twitter}
+                                      </a>
+                                    )}
+                                    {individual.linkedin && (
+                                      <a
+                                        href={`https://linkedin.com/in/${individual.linkedin}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 text-blue-500 hover:text-blue-400 transition-colors"
+                                      >
+                                        <Linkedin className="w-3 h-3" />
+                                        LinkedIn
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
                                 
                                 <div className="space-y-3">
                                   <div className="p-3 rounded bg-card border border-border">
@@ -1498,6 +1616,15 @@ export default function EpisodesDashboard() {
                                       </a>
                                     ))}
                                   </div>
+
+                                  {/* Draft Email Button */}
+                                  <Button
+                                    onClick={() => handleDraftEmail(individual)}
+                                    className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white"
+                                  >
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    Draft Outreach Email
+                                  </Button>
                                 </div>
                               </motion.div>
                             ))}
@@ -1697,6 +1824,95 @@ export default function EpisodesDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Email Draft Modal */}
+      <Dialog open={emailDraftOpen} onOpenChange={setEmailDraftOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-purple-400" />
+              Draft Outreach Email
+            </DialogTitle>
+            <DialogDescription>
+              {selectedIndividual && (
+                <span>
+                  Personalized email for <strong>{selectedIndividual.name}</strong> ({selectedIndividual.role} at {selectedIndividual.organization})
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedIndividual && (
+            <div className="space-y-4">
+              {/* Recipient Info */}
+              <div className="p-3 rounded bg-green-500/5 border border-green-500/20">
+                <p className="text-sm font-medium mb-2">Sending to:</p>
+                <div className="flex flex-wrap gap-3 text-sm">
+                  {selectedIndividual.email && (
+                    <span className="flex items-center gap-1 text-green-400">
+                      <Mail className="w-3 h-3" />
+                      {selectedIndividual.email}
+                    </span>
+                  )}
+                  {selectedIndividual.twitter && (
+                    <span className="flex items-center gap-1 text-blue-400">
+                      <Twitter className="w-3 h-3" />
+                      {selectedIndividual.twitter}
+                    </span>
+                  )}
+                  {selectedIndividual.linkedin && (
+                    <span className="flex items-center gap-1 text-blue-500">
+                      <Linkedin className="w-3 h-3" />
+                      linkedin.com/in/{selectedIndividual.linkedin}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Content */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Email Content (editable):</label>
+                <Textarea
+                  value={emailDraft}
+                  onChange={(e) => setEmailDraft(e.target.value)}
+                  className="min-h-[400px] font-mono text-sm"
+                  placeholder="Email content..."
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={handleCopyEmail}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {emailCopied ? (
+                    <Check className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Copy className="w-4 h-4 mr-2" />
+                  )}
+                  {emailCopied ? "Copied!" : "Copy to Clipboard"}
+                </Button>
+                
+                {selectedIndividual.email && (
+                  <Button
+                    onClick={handleOpenMailClient}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Open in Email Client
+                  </Button>
+                )}
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Tip: You can edit the email content above before copying or sending. The email is personalized based on the guest's profile and your episode context.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
