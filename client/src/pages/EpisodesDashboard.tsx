@@ -228,7 +228,7 @@ interface ExtractionResult {
 interface Episode {
   id: string;
   title: string;
-  source: "text" | "youtube";
+  source: "text";
   youtubeUrl?: string;
   transcript: string;
   createdAt: string;
@@ -729,11 +729,11 @@ export default function EpisodesDashboard() {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
   const [isNewEpisodeOpen, setIsNewEpisodeOpen] = useState(false);
-  const [inputMode, setInputMode] = useState<"text" | "youtube">("text");
+  // Removed YouTube import - only text input supported
   const [transcript, setTranscript] = useState("");
   const [episodeTitle, setEpisodeTitle] = useState("");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [isLoadingYoutube, setIsLoadingYoutube] = useState(false);
+  // YouTube URL state removed
+  // YouTube loading state removed
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -744,65 +744,17 @@ export default function EpisodesDashboard() {
   const [emailDraft, setEmailDraft] = useState("");
   const [emailCopied, setEmailCopied] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [transcriptValidation, setTranscriptValidation] = useState<{
-    wordCount: number;
-    lastSentence: string;
-    singaporeanTerms: string[];
-    videoId: string;
-  } | null>(null);
-
-  // State for demo mode indicator
-  const [isDemoMode, setIsDemoMode] = useState(false);
-
-  // YouTube transcript mutation
-  const fetchTranscriptMutation = trpc.youtube.fetchTranscript.useMutation({
+  // Analysis mutation for server-side LLM + web search
+  const analysisMutation = trpc.analysis.analyze.useMutation({
     onSuccess: (data) => {
       if (data.success) {
-        setTranscript(data.transcript);
-        setTranscriptValidation({
-          wordCount: data.wordCount,
-          lastSentence: data.lastSentence,
-          singaporeanTerms: data.singaporeanTerms,
-          videoId: data.videoId,
-        });
-        setInputMode("text");
-        
-        // Check if this is demo mode (title contains "Demo")
-        if (data.title?.includes('Demo')) {
-          setIsDemoMode(true);
-          toast.info('Demo Mode: Using sample Singapore-focused transcript', {
-            description: 'YouTube blocks cloud server requests. For live transcripts, paste the transcript manually.',
-            duration: 6000,
-          });
-        } else {
-          setIsDemoMode(false);
-        }
-        
-        toast.success(`Transcript loaded: ${data.wordCount.toLocaleString()} words`);
-        if (data.singaporeanTerms.length > 0) {
-          toast.info(`Found ${data.singaporeanTerms.length} Singaporean terms preserved`);
-        }
+        toast.success(`Analysis complete: ${data.arguments?.length || 0} arguments, ${data.contrarianIndividuals?.length || 0} contrarian individuals found`);
       } else {
-        // Show specific error messages based on error type
-        if (data.errorType === 'ip_blocked') {
-          toast.error('YouTube is blocking requests from this server', {
-            description: 'Please paste the transcript manually instead.',
-            duration: 5000,
-          });
-        } else if (data.errorType === 'no_captions') {
-          toast.error('This video has no captions available', {
-            description: 'Try a different video or paste the transcript manually.',
-            duration: 5000,
-          });
-        } else {
-          toast.error(data.error || "Failed to fetch transcript");
-        }
+        toast.error(data.error || "Analysis failed");
       }
-      setIsLoadingYoutube(false);
     },
     onError: (error) => {
-      toast.error(`Failed to fetch transcript: ${error.message}`);
-      setIsLoadingYoutube(false);
+      toast.error(`Analysis failed: ${error.message}`);
     },
   });
 
@@ -831,20 +783,6 @@ export default function EpisodesDashboard() {
     }
   }, [episodes]);
 
-  const handleYoutubeImport = useCallback(async () => {
-    if (!youtubeUrl.trim()) {
-      toast.error("Please enter a YouTube URL");
-      return;
-    }
-
-    setIsLoadingYoutube(true);
-    setTranscriptValidation(null);
-    toast.info("Fetching complete transcript from YouTube (zero-truncation)...");
-
-    // Use live transcript extraction
-    fetchTranscriptMutation.mutate({ url: youtubeUrl });
-  }, [youtubeUrl, fetchTranscriptMutation]);
-
   const handleSampleSelect = (sample: typeof sampleTranscripts[0]) => {
     setTranscript(sample.text);
     setEpisodeTitle(sample.title);
@@ -853,7 +791,7 @@ export default function EpisodesDashboard() {
 
   const handleCreateEpisode = useCallback(async () => {
     if (!transcript.trim()) {
-      toast.error("Please enter or import a transcript");
+      toast.error("Please enter a transcript");
       return;
     }
 
@@ -862,8 +800,7 @@ export default function EpisodesDashboard() {
     const newEpisode: Episode = {
       id: generateId(),
       title,
-      source: inputMode,
-      youtubeUrl: inputMode === "youtube" ? youtubeUrl : undefined,
+      source: "text",
       transcript,
       createdAt: new Date().toISOString(),
       status: "analyzing",
@@ -877,47 +814,91 @@ export default function EpisodesDashboard() {
     setProgress(0);
     setSelectedEpisode(newEpisode);
 
-    // Simulate analysis
+    // Start progress animation
     const progressInterval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
+        if (prev >= 85) {
+          return 85;
         }
-        return prev + Math.random() * 15;
+        return prev + Math.random() * 8;
       });
-    }, 200);
+    }, 500);
 
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    try {
+      // Call server-side analysis with LLM + web search
+      toast.info("Analyzing transcript with AI and searching for contrarian individuals...");
+      const result = await analysisMutation.mutateAsync({ transcript });
+      
+      clearInterval(progressInterval);
+      setProgress(100);
 
-    clearInterval(progressInterval);
-    setProgress(100);
+      if (result.success) {
+        // Transform server result to match ExtractionResult interface
+        const extractionResult: ExtractionResult = {
+          arguments: result.arguments || [],
+          topics: (result.topics || []).map(t => t.name),
+          sentiment: result.sentiment || { positive: 0.33, neutral: 0.34, negative: 0.33 },
+          contrarian_candidates: [],
+          singlishAnalysis: result.singlishTerms && result.singlishTerms.length > 0 ? {
+            termsFound: result.singlishTerms,
+            culturalContext: [],
+            localRelevance: result.localRelevance || 0
+          } : undefined,
+          suggestedTrendingTopics: [],
+          contrarianIndividuals: result.contrarianIndividuals || [],
+          opposingContent: [],
+          factChecks: []
+        };
 
-    const result = extractArguments(transcript);
+        const completedEpisode: Episode = {
+          ...newEpisode,
+          status: "completed",
+          analyzedAt: new Date().toISOString(),
+          result: extractionResult
+        };
 
-    await new Promise(resolve => setTimeout(resolve, 300));
+        setEpisodes(prev => prev.map(ep => ep.id === newEpisode.id ? completedEpisode : ep));
+        setSelectedEpisode(completedEpisode);
+        
+        const singlishMsg = result.singlishTerms && result.singlishTerms.length > 0
+          ? ` (${result.singlishTerms.length} Singlish terms detected)`
+          : "";
+        toast.success(`Found ${result.contrarianIndividuals?.length || 0} unique contrarian individuals${singlishMsg}`);
+      } else {
+        // Fallback to local extraction if server fails
+        const localResult = extractArguments(transcript);
+        const completedEpisode: Episode = {
+          ...newEpisode,
+          status: "completed",
+          analyzedAt: new Date().toISOString(),
+          result: localResult
+        };
+        setEpisodes(prev => prev.map(ep => ep.id === newEpisode.id ? completedEpisode : ep));
+        setSelectedEpisode(completedEpisode);
+        toast.warning("Server analysis failed, using local extraction");
+      }
+    } catch (error) {
+      clearInterval(progressInterval);
+      // Fallback to local extraction on error
+      const localResult = extractArguments(transcript);
+      const completedEpisode: Episode = {
+        ...newEpisode,
+        status: "completed",
+        analyzedAt: new Date().toISOString(),
+        result: localResult
+      };
+      setEpisodes(prev => prev.map(ep => ep.id === newEpisode.id ? completedEpisode : ep));
+      setSelectedEpisode(completedEpisode);
+      setProgress(100);
+      toast.warning("Using local analysis (server unavailable)");
+    }
 
-    const completedEpisode: Episode = {
-      ...newEpisode,
-      status: "completed",
-      analyzedAt: new Date().toISOString(),
-      result
-    };
-
-    setEpisodes(prev => prev.map(ep => ep.id === newEpisode.id ? completedEpisode : ep));
-    setSelectedEpisode(completedEpisode);
     setIsAnalyzing(false);
 
     // Reset form
     setTranscript("");
     setEpisodeTitle("");
-    setYoutubeUrl("");
-
-    const singlishMsg = result.singlishAnalysis 
-      ? ` (${result.singlishAnalysis.termsFound.length} Singlish terms detected)`
-      : "";
-    toast.success(`Extracted ${result.arguments.length} arguments${singlishMsg}`);
-  }, [transcript, episodeTitle, inputMode, youtubeUrl, episodes.length]);
+  }, [transcript, episodeTitle, episodes.length, analysisMutation]);
 
   const handleDeleteEpisode = (episodeId: string) => {
     setEpisodes(prev => prev.filter(ep => ep.id !== episodeId));
@@ -1079,134 +1060,8 @@ Outreach Context: ${individual.outreachAngle}`;
                   />
                 </div>
 
-                {/* Input Mode Tabs */}
-                <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "text" | "youtube")}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="text" className="flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      Paste Text
-                    </TabsTrigger>
-                    <TabsTrigger value="youtube" className="flex items-center gap-2">
-                      <Youtube className="w-4 h-4" />
-                      YouTube URL
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="youtube" className="space-y-4 mt-4">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="https://youtube.com/watch?v=..."
-                        value={youtubeUrl}
-                        onChange={(e) => setYoutubeUrl(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button 
-                        onClick={handleYoutubeImport}
-                        disabled={isLoadingYoutube || !youtubeUrl.trim()}
-                        className="shrink-0"
-                      >
-                        {isLoadingYoutube ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Import
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Demo Mode Notice */}
-                    {isDemoMode && (
-                      <Card className="bg-amber-500/10 border-amber-500/30">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5" />
-                            <div>
-                              <p className="font-semibold text-amber-400">Demo Mode Active</p>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                YouTube blocks transcript requests from cloud servers. This demo uses a sample 
-                                Singapore-focused transcript to showcase the analysis features.
-                              </p>
-                              <p className="text-sm text-muted-foreground mt-2">
-                                <strong>For real transcripts:</strong> Use the "Paste Text" tab to manually paste 
-                                your podcast transcript, or copy it from YouTube's transcript feature.
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Transcript Validation Display */}
-                    {transcriptValidation && (
-                      <Card className={isDemoMode ? "bg-amber-500/10 border-amber-500/30" : "bg-green-500/10 border-green-500/30"}>
-                        <CardContent className="p-4 space-y-3">
-                          <div className={`flex items-center gap-2 ${isDemoMode ? 'text-amber-400' : 'text-green-400'}`}>
-                            <CheckCircle className="w-5 h-5" />
-                            <span className="font-semibold">
-                              {isDemoMode ? 'Demo Transcript Loaded' : 'Transcript Validated (Zero-Truncation)'}
-                            </span>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="text-muted-foreground">Video ID</p>
-                              <p className="font-mono text-primary">{transcriptValidation.videoId}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Total Word Count</p>
-                              <p className="font-bold text-lg text-green-400">{transcriptValidation.wordCount.toLocaleString()} words</p>
-                            </div>
-                          </div>
-
-                          <div>
-                            <p className="text-muted-foreground text-sm mb-1">Last Sentence (End Verification)</p>
-                            <p className="text-sm italic bg-card/50 p-2 rounded border border-border">
-                              "{transcriptValidation.lastSentence}"
-                            </p>
-                          </div>
-
-                          {transcriptValidation.singaporeanTerms.length > 0 && (
-                            <div>
-                              <p className="text-muted-foreground text-sm mb-2">
-                                <MapPin className="w-4 h-4 inline mr-1" />
-                                Singaporean Terms Preserved ({transcriptValidation.singaporeanTerms.length})
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                {transcriptValidation.singaporeanTerms.slice(0, 15).map((term, i) => (
-                                  <Badge key={i} variant="outline" className="text-xs bg-primary/10 border-primary/30">
-                                    {term}
-                                  </Badge>
-                                ))}
-                                {transcriptValidation.singaporeanTerms.length > 15 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{transcriptValidation.singaporeanTerms.length - 15} more
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {isLoadingYoutube && (
-                      <Card className="bg-blue-500/10 border-blue-500/30">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
-                            <div>
-                              <p className="font-medium text-blue-400">Extracting Complete Transcript...</p>
-                              <p className="text-sm text-muted-foreground">Using iterative fetching for 100% coverage</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="text" className="space-y-4 mt-4">
+                {/* Transcript Input */}
+                <div className="space-y-4">
                     {/* Sample Buttons */}
                     <div className="flex flex-wrap gap-2">
                       {sampleTranscripts.map((sample, index) => (
@@ -1229,8 +1084,7 @@ Outreach Context: ${individual.outreachAngle}`;
                       onChange={(e) => setTranscript(e.target.value)}
                       className="min-h-[200px] bg-card border-border resize-none font-mono text-sm"
                     />
-                  </TabsContent>
-                </Tabs>
+                </div>
 
                 {transcript && (
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -1329,11 +1183,7 @@ Outreach Context: ${individual.outreachAngle}`;
                         
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="outline" className="text-xs">
-                            {episode.source === "youtube" ? (
-                              <><Youtube className="w-3 h-3 mr-1" /> YouTube</>
-                            ) : (
-                              <><FileText className="w-3 h-3 mr-1" /> Text</>
-                            )}
+                            <FileText className="w-3 h-3 mr-1" /> Text
                           </Badge>
                           <Badge 
                             variant="outline" 

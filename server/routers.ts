@@ -13,7 +13,7 @@ import {
   getOutreachByEpisodeId,
   updateOutreachStatus
 } from "./db";
-import { fetchYouTubeTranscript } from "./youtube";
+import { analyzeTranscript } from "./analysis";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -47,8 +47,7 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         title: z.string().min(1).max(255),
-        source: z.enum(["text", "youtube"]),
-        youtubeUrl: z.string().optional(),
+        source: z.enum(["text"]),
         transcript: z.string().min(1),
         wordCount: z.number().default(0),
       }))
@@ -57,7 +56,7 @@ export const appRouter = router({
           userId: ctx.user.id,
           title: input.title,
           source: input.source,
-          youtubeUrl: input.youtubeUrl || null,
+          youtubeUrl: null,
           transcript: input.transcript,
           wordCount: input.wordCount,
           status: "pending",
@@ -84,6 +83,41 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         return await deleteEpisode(input.id, ctx.user.id);
+      }),
+  }),
+
+  // Transcript analysis route - uses LLM and web search for unique results
+  analysis: router({
+    // Analyze a transcript and find contrarian individuals
+    analyze: protectedProcedure
+      .input(z.object({
+        transcript: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        console.log(`[Analysis] Starting analysis for transcript (${input.transcript.length} chars)`);
+        
+        try {
+          const result = await analyzeTranscript(input.transcript);
+          
+          console.log(`[Analysis] Completed: ${result.arguments.length} arguments, ${result.contrarianIndividuals.length} individuals`);
+          
+          return {
+            success: true,
+            ...result
+          };
+        } catch (error) {
+          console.error("[Analysis] Failed:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Analysis failed",
+            arguments: [],
+            topics: [],
+            sentiment: { positive: 0.33, neutral: 0.34, negative: 0.33 },
+            contrarianIndividuals: [],
+            singlishTerms: [],
+            localRelevance: 0
+          };
+        }
       }),
   }),
 
@@ -126,28 +160,6 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const sentAt = input.markSentNow ? new Date() : undefined;
         return await updateOutreachStatus(input.id, ctx.user.id, input.status, sentAt);
-      }),
-  }),
-
-  // YouTube transcript extraction route
-  youtube: router({
-    // Fetch transcript from YouTube URL
-    fetchTranscript: publicProcedure
-      .input(z.object({
-        url: z.string().min(1),
-      }))
-      .mutation(async ({ input }) => {
-        console.log(`[YouTube] Fetching transcript for: ${input.url}`);
-        const result = await fetchYouTubeTranscript(input.url);
-        
-        if (result.success) {
-          console.log(`[YouTube] Successfully fetched transcript: ${result.wordCount} words`);
-          console.log(`[YouTube] Found ${result.singaporeanTerms.length} Singaporean terms`);
-        } else {
-          console.log(`[YouTube] Failed to fetch transcript: ${result.error}`);
-        }
-        
-        return result;
       }),
   }),
 

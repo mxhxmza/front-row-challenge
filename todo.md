@@ -16,3 +16,8 @@
 - [x] Add clear error messages for blocked requests and unavailable captions
 - [x] Add demo mode indicator with explanation for users
 - [x] Test complete YouTube import workflow with demo transcript
+- [x] Remove YouTube URL import option from UI
+- [x] Implement dynamic topic extraction using LLM from transcript content
+- [x] Create web search integration to find contrarian individuals based on extracted topics
+- [x] Generate unique contrarian individuals for each transcript (not static list)
+- [x] Test with different transcripts to verify unique results
