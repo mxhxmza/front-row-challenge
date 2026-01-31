@@ -6,3 +6,4 @@
 - [x] Remove Copy JSON button from episode details
 - [x] Remove Contrarian Candidates section (keep only Contrarian Individuals)
 - [x] Update Send Email button to open Gmail compose with pre-filled draft
+- [x] Add proof/source links to Expected Impact metrics section

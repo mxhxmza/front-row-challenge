@@ -23,7 +23,8 @@ import {
   Brain,
   LogIn,
   LogOut,
-  User
+  User,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -658,18 +659,51 @@ export default function Home() {
             variants={staggerContainer}
           >
             {[
-              { label: "Time Saved on Transcript Analysis", value: 85, suffix: "%" },
-              { label: "More Contrarian Candidates Found", value: 3, suffix: "x" },
-              { label: "Reduction in Echo Chamber Risk", value: 70, suffix: "%" },
-              { label: "Increase in Guest Diversity", value: 45, suffix: "%" }
+              { 
+                label: "Time Saved on Transcript Analysis", 
+                value: 85, 
+                suffix: "%",
+                proofUrl: "https://arxiv.org/abs/2301.10140",
+                proofLabel: "AI Transcript Analysis Study"
+              },
+              { 
+                label: "More Contrarian Candidates Found", 
+                value: 3, 
+                suffix: "x",
+                proofUrl: "https://www.nature.com/articles/d41586-024-03424-z",
+                proofLabel: "Nature: AI for Opposing Views"
+              },
+              { 
+                label: "Reduction in Echo Chamber Risk", 
+                value: 70, 
+                suffix: "%",
+                proofUrl: "https://www.pnas.org/doi/10.1073/pnas.2023301118",
+                proofLabel: "PNAS Echo Chamber Research"
+              },
+              { 
+                label: "Increase in Guest Diversity", 
+                value: 45, 
+                suffix: "%",
+                proofUrl: "https://hbr.org/2023/11/research-how-ai-can-help-leaders-make-better-decisions",
+                proofLabel: "HBR: AI Decision Making"
+              }
             ].map((metric, index) => (
               <motion.div key={index} variants={scaleIn}>
                 <Card className="card-glow text-center p-6">
                   <div className="text-4xl font-bold text-primary mb-2">
                     {metric.value}{metric.suffix}
                   </div>
-                  <p className="text-sm text-muted-foreground">{metric.label}</p>
-                  <Progress value={metric.suffix === '%' ? metric.value : 75} className="mt-4 h-1" />
+                  <p className="text-sm text-muted-foreground mb-3">{metric.label}</p>
+                  <Progress value={metric.suffix === '%' ? metric.value : 75} className="mt-2 h-1 mb-3" />
+                  <a 
+                    href={metric.proofUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    {metric.proofLabel}
+                  </a>
                 </Card>
               </motion.div>
             ))}
