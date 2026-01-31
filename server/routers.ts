@@ -13,6 +13,7 @@ import {
   getOutreachByEpisodeId,
   updateOutreachStatus
 } from "./db";
+import { fetchYouTubeTranscript } from "./youtube";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -125,6 +126,28 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const sentAt = input.markSentNow ? new Date() : undefined;
         return await updateOutreachStatus(input.id, ctx.user.id, input.status, sentAt);
+      }),
+  }),
+
+  // YouTube transcript extraction route
+  youtube: router({
+    // Fetch transcript from YouTube URL
+    fetchTranscript: publicProcedure
+      .input(z.object({
+        url: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        console.log(`[YouTube] Fetching transcript for: ${input.url}`);
+        const result = await fetchYouTubeTranscript(input.url);
+        
+        if (result.success) {
+          console.log(`[YouTube] Successfully fetched transcript: ${result.wordCount} words`);
+          console.log(`[YouTube] Found ${result.singaporeanTerms.length} Singaporean terms`);
+        } else {
+          console.log(`[YouTube] Failed to fetch transcript: ${result.error}`);
+        }
+        
+        return result;
       }),
   }),
 

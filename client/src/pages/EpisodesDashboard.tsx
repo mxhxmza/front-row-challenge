@@ -744,6 +744,67 @@ export default function EpisodesDashboard() {
   const [emailDraft, setEmailDraft] = useState("");
   const [emailCopied, setEmailCopied] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [transcriptValidation, setTranscriptValidation] = useState<{
+    wordCount: number;
+    lastSentence: string;
+    singaporeanTerms: string[];
+    videoId: string;
+  } | null>(null);
+
+  // State for demo mode indicator
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // YouTube transcript mutation
+  const fetchTranscriptMutation = trpc.youtube.fetchTranscript.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        setTranscript(data.transcript);
+        setTranscriptValidation({
+          wordCount: data.wordCount,
+          lastSentence: data.lastSentence,
+          singaporeanTerms: data.singaporeanTerms,
+          videoId: data.videoId,
+        });
+        setInputMode("text");
+        
+        // Check if this is demo mode (title contains "Demo")
+        if (data.title?.includes('Demo')) {
+          setIsDemoMode(true);
+          toast.info('Demo Mode: Using sample Singapore-focused transcript', {
+            description: 'YouTube blocks cloud server requests. For live transcripts, paste the transcript manually.',
+            duration: 6000,
+          });
+        } else {
+          setIsDemoMode(false);
+        }
+        
+        toast.success(`Transcript loaded: ${data.wordCount.toLocaleString()} words`);
+        if (data.singaporeanTerms.length > 0) {
+          toast.info(`Found ${data.singaporeanTerms.length} Singaporean terms preserved`);
+        }
+      } else {
+        // Show specific error messages based on error type
+        if (data.errorType === 'ip_blocked') {
+          toast.error('YouTube is blocking requests from this server', {
+            description: 'Please paste the transcript manually instead.',
+            duration: 5000,
+          });
+        } else if (data.errorType === 'no_captions') {
+          toast.error('This video has no captions available', {
+            description: 'Try a different video or paste the transcript manually.',
+            duration: 5000,
+          });
+        } else {
+          toast.error(data.error || "Failed to fetch transcript");
+        }
+      }
+      setIsLoadingYoutube(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to fetch transcript: ${error.message}`);
+      setIsLoadingYoutube(false);
+    },
+  });
 
   // Email sending mutation
   const sendEmailMutation = trpc.email.send.useMutation({
@@ -771,23 +832,18 @@ export default function EpisodesDashboard() {
   }, [episodes]);
 
   const handleYoutubeImport = useCallback(async () => {
-    const videoId = extractYouTubeId(youtubeUrl);
-    if (!videoId) {
-      toast.error("Please enter a valid YouTube URL");
+    if (!youtubeUrl.trim()) {
+      toast.error("Please enter a YouTube URL");
       return;
     }
 
     setIsLoadingYoutube(true);
-    toast.info("Fetching transcript from YouTube...");
+    setTranscriptValidation(null);
+    toast.info("Fetching complete transcript from YouTube (zero-truncation)...");
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const extractedTranscript = mockYouTubeTranscript();
-    setTranscript(extractedTranscript);
-    setInputMode("text");
-    setIsLoadingYoutube(false);
-    toast.success("Transcript extracted successfully!");
-  }, [youtubeUrl]);
+    // Use live transcript extraction
+    fetchTranscriptMutation.mutate({ url: youtubeUrl });
+  }, [youtubeUrl, fetchTranscriptMutation]);
 
   const handleSampleSelect = (sample: typeof sampleTranscripts[0]) => {
     setTranscript(sample.text);
@@ -1059,6 +1115,95 @@ Outreach Context: ${individual.outreachAngle}`;
                         )}
                       </Button>
                     </div>
+
+                    {/* Demo Mode Notice */}
+                    {isDemoMode && (
+                      <Card className="bg-amber-500/10 border-amber-500/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5" />
+                            <div>
+                              <p className="font-semibold text-amber-400">Demo Mode Active</p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                YouTube blocks transcript requests from cloud servers. This demo uses a sample 
+                                Singapore-focused transcript to showcase the analysis features.
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-2">
+                                <strong>For real transcripts:</strong> Use the "Paste Text" tab to manually paste 
+                                your podcast transcript, or copy it from YouTube's transcript feature.
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Transcript Validation Display */}
+                    {transcriptValidation && (
+                      <Card className={isDemoMode ? "bg-amber-500/10 border-amber-500/30" : "bg-green-500/10 border-green-500/30"}>
+                        <CardContent className="p-4 space-y-3">
+                          <div className={`flex items-center gap-2 ${isDemoMode ? 'text-amber-400' : 'text-green-400'}`}>
+                            <CheckCircle className="w-5 h-5" />
+                            <span className="font-semibold">
+                              {isDemoMode ? 'Demo Transcript Loaded' : 'Transcript Validated (Zero-Truncation)'}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground">Video ID</p>
+                              <p className="font-mono text-primary">{transcriptValidation.videoId}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Total Word Count</p>
+                              <p className="font-bold text-lg text-green-400">{transcriptValidation.wordCount.toLocaleString()} words</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-muted-foreground text-sm mb-1">Last Sentence (End Verification)</p>
+                            <p className="text-sm italic bg-card/50 p-2 rounded border border-border">
+                              "{transcriptValidation.lastSentence}"
+                            </p>
+                          </div>
+
+                          {transcriptValidation.singaporeanTerms.length > 0 && (
+                            <div>
+                              <p className="text-muted-foreground text-sm mb-2">
+                                <MapPin className="w-4 h-4 inline mr-1" />
+                                Singaporean Terms Preserved ({transcriptValidation.singaporeanTerms.length})
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {transcriptValidation.singaporeanTerms.slice(0, 15).map((term, i) => (
+                                  <Badge key={i} variant="outline" className="text-xs bg-primary/10 border-primary/30">
+                                    {term}
+                                  </Badge>
+                                ))}
+                                {transcriptValidation.singaporeanTerms.length > 15 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{transcriptValidation.singaporeanTerms.length - 15} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {isLoadingYoutube && (
+                      <Card className="bg-blue-500/10 border-blue-500/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+                            <div>
+                              <p className="font-medium text-blue-400">Extracting Complete Transcript...</p>
+                              <p className="text-sm text-muted-foreground">Using iterative fetching for 100% coverage</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="text" className="space-y-4 mt-4">

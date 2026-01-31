@@ -7,3 +7,12 @@
 - [x] Remove Contrarian Candidates section (keep only Contrarian Individuals)
 - [x] Update Send Email button to open Gmail compose with pre-filled draft
 - [x] Add proof/source links to Expected Impact metrics section
+- [x] Create server-side YouTube transcript extraction endpoint
+- [x] Implement zero-truncation with iterative fetching for full transcript coverage
+- [x] Add validation step showing word count and last sentence verification
+- [x] Preserve Singaporean context (names, terms, local nuances)
+- [x] Update frontend to use live transcript extraction
+- [x] Handle YouTube IP blocking with demo mode fallback
+- [x] Add clear error messages for blocked requests and unavailable captions
+- [x] Add demo mode indicator with explanation for users
+- [x] Test complete YouTube import workflow with demo transcript
