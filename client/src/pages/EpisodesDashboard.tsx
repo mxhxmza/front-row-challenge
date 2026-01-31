@@ -1364,20 +1364,6 @@ Outreach Context: ${individual.outreachAngle}`;
                             </span>
                           </CardDescription>
                         </div>
-                        {selectedEpisode.result && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleCopyResult}
-                          >
-                            {copied ? (
-                              <Check className="w-4 h-4 mr-1" />
-                            ) : (
-                              <Copy className="w-4 h-4 mr-1" />
-                            )}
-                            {copied ? "Copied" : "Copy JSON"}
-                          </Button>
-                        )}
                       </div>
                     </CardHeader>
                   </Card>
@@ -1502,45 +1488,6 @@ Outreach Context: ${individual.outreachAngle}`;
                           </div>
                         </CardContent>
                       </Card>
-
-                      {/* Contrarian Candidates */}
-                      {selectedEpisode.result.contrarian_candidates.length > 0 && (
-                        <Card className="card-glow border-destructive/20">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <AlertTriangle className="w-5 h-5 text-destructive" />
-                              Contrarian Candidates
-                            </CardTitle>
-                            <CardDescription>
-                              Potential guests with opposing viewpoints for balanced discussions
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                              {selectedEpisode.result.contrarian_candidates.map((candidate, i) => (
-                                <motion.div
-                                  key={i}
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: i * 0.1 }}
-                                  className="p-4 rounded-lg bg-destructive/5 border border-destructive/20"
-                                >
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="font-medium">{candidate.name}</span>
-                                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
-                                      {candidate.score.toFixed(2)}
-                                    </Badge>
-                                  </div>
-                                  <Badge variant="outline" className="text-xs mb-2 bg-muted/50">
-                                    {candidate.expertise}
-                                  </Badge>
-                                  <p className="text-xs text-muted-foreground">{candidate.reason}</p>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
 
                       {/* Contrarian Individuals - Detailed Profiles */}
                       {selectedEpisode.result.contrarianIndividuals && selectedEpisode.result.contrarianIndividuals.length > 0 && (
