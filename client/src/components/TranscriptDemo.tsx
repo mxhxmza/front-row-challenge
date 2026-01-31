@@ -1,6 +1,7 @@
 /*
   Design: Neural Constellation
-  Transcript Demo Component - Interactive argument extraction demonstration
+  Transcript Demo Component - Interactive argument extraction with YouTube import,
+  Singlish language support, and trending Singapore topics
 */
 
 import { useState, useCallback } from "react";
@@ -15,16 +16,163 @@ import {
   AlertTriangle,
   ChevronRight,
   Copy,
-  Check
+  Check,
+  Youtube,
+  Globe,
+  TrendingUp,
+  Flame,
+  MapPin,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
-// Sample transcripts for demo
+// Singlish dictionary for language processing
+const singlishDictionary: Record<string, { meaning: string; usage: string }> = {
+  "lah": { meaning: "Emphasis particle", usage: "Used to add emphasis or soften statements" },
+  "lor": { meaning: "Resignation particle", usage: "Indicates acceptance or resignation" },
+  "leh": { meaning: "Question/assertion particle", usage: "Softens questions or assertions" },
+  "meh": { meaning: "Skepticism particle", usage: "Expresses doubt or disbelief" },
+  "sia": { meaning: "Exclamation particle", usage: "Expresses surprise or emphasis" },
+  "hor": { meaning: "Seeking agreement", usage: "Used when seeking confirmation" },
+  "shiok": { meaning: "Extremely good/satisfying", usage: "Describes something pleasurable" },
+  "kiasu": { meaning: "Fear of losing out", usage: "Describes competitive behavior" },
+  "kiasi": { meaning: "Fear of death/overly cautious", usage: "Describes risk-averse behavior" },
+  "bojio": { meaning: "Didn't invite", usage: "Complaint about not being invited" },
+  "sian": { meaning: "Bored/tired/frustrated", usage: "Expresses weariness or frustration" },
+  "lepak": { meaning: "Relax/hang out", usage: "Casual relaxation with friends" },
+  "makan": { meaning: "Eat/food", usage: "Refers to eating or food" },
+  "alamak": { meaning: "Oh no!/Expression of dismay", usage: "Exclamation of surprise or dismay" },
+  "blur": { meaning: "Confused/clueless", usage: "Describes someone who is confused" },
+  "chope": { meaning: "Reserve/book", usage: "To reserve a seat or place" },
+  "paiseh": { meaning: "Embarrassed/shy", usage: "Feeling of embarrassment" },
+  "steady": { meaning: "Cool/reliable", usage: "Describes someone dependable" },
+  "jialat": { meaning: "Serious trouble", usage: "Describes a difficult situation" },
+  "can": { meaning: "Okay/possible", usage: "Affirmative response" },
+  "cannot": { meaning: "Not okay/impossible", usage: "Negative response" },
+  "atas": { meaning: "High-class/snobbish", usage: "Describes something upscale" },
+  "kaypoh": { meaning: "Nosy/busybody", usage: "Describes someone overly curious" },
+  "goondu": { meaning: "Stupid/foolish", usage: "Describes someone acting foolishly" },
+  "wayang": { meaning: "Putting on a show", usage: "Pretending or being insincere" },
+  "chim": { meaning: "Deep/profound/difficult", usage: "Describes complex concepts" },
+  "swee": { meaning: "Beautiful/perfect", usage: "Describes something ideal" },
+  "boleh": { meaning: "Can/possible", usage: "Malay-influenced affirmative" },
+  "angmoh": { meaning: "Westerner/Caucasian", usage: "Refers to Western foreigners" },
+  "kopi": { meaning: "Coffee", usage: "Local coffee culture reference" },
+  "hawker": { meaning: "Street food vendor", usage: "Singapore's famous food culture" },
+  "hdb": { meaning: "Public housing", usage: "Housing Development Board flats" },
+  "mrt": { meaning: "Mass Rapid Transit", usage: "Singapore's subway system" },
+  "coe": { meaning: "Certificate of Entitlement", usage: "Vehicle ownership permit" },
+  "cpf": { meaning: "Central Provident Fund", usage: "Mandatory savings scheme" },
+  "5cs": { meaning: "Cash, Car, Credit Card, Condo, Country Club", usage: "Traditional success markers" }
+};
+
+// Singapore cultural context
+const singaporeContext = {
+  topics: [
+    "HDB prices and housing affordability",
+    "COE and car ownership costs",
+    "CPF policies and retirement planning",
+    "Cost of living in Singapore",
+    "Work-life balance and burnout culture",
+    "Education system and PSLE stress",
+    "Hawker culture and food heritage",
+    "Singapore's smart nation initiatives",
+    "Startup ecosystem and entrepreneurship",
+    "AI adoption in Singapore businesses"
+  ],
+  culturalReferences: [
+    "Kiasu mentality in business",
+    "Meritocracy and social mobility",
+    "Multicultural harmony (CMIO)",
+    "National Service obligations",
+    "Singapore Dream vs reality"
+  ]
+};
+
+// Trending topics in Singapore (simulated real-time data)
+const trendingSGTopics = [
+  {
+    id: 1,
+    title: "AI Replacing Jobs in Singapore",
+    category: "Technology",
+    heat: 95,
+    description: "Debate on whether AI will displace Singaporean workers in finance, legal, and creative sectors",
+    relatedKeywords: ["ChatGPT", "automation", "reskilling", "SkillsFuture"],
+    potentialGuests: ["Tech leaders", "HR professionals", "Policy makers"]
+  },
+  {
+    id: 2,
+    title: "HDB Resale Prices Hit Record High",
+    category: "Property",
+    heat: 92,
+    description: "Million-dollar HDB flats becoming common, sparking affordability concerns",
+    relatedKeywords: ["BTO", "property cooling measures", "first-time buyers"],
+    potentialGuests: ["Property analysts", "Young couples", "MPs"]
+  },
+  {
+    id: 3,
+    title: "Singapore Startup Ecosystem 2025",
+    category: "Business",
+    heat: 88,
+    description: "Is Singapore still the best place for startups in Southeast Asia?",
+    relatedKeywords: ["VC funding", "talent shortage", "regional expansion"],
+    potentialGuests: ["Founders", "VCs", "Enterprise Singapore"]
+  },
+  {
+    id: 4,
+    title: "Work From Home vs Return to Office",
+    category: "Lifestyle",
+    heat: 85,
+    description: "Singaporean companies mandating return to office, employees pushing back",
+    relatedKeywords: ["hybrid work", "productivity", "mental health"],
+    potentialGuests: ["HR directors", "Remote workers", "Office space providers"]
+  },
+  {
+    id: 5,
+    title: "Cost of Living Crisis",
+    category: "Economy",
+    heat: 90,
+    description: "GST hike, inflation, and stagnant wages affecting middle-class Singaporeans",
+    relatedKeywords: ["inflation", "GST vouchers", "household expenses"],
+    potentialGuests: ["Economists", "Social workers", "Affected families"]
+  },
+  {
+    id: 6,
+    title: "Singapore's Green Plan 2030",
+    category: "Environment",
+    heat: 78,
+    description: "Can Singapore achieve its sustainability goals? Critics vs supporters",
+    relatedKeywords: ["carbon tax", "EV adoption", "solar energy"],
+    potentialGuests: ["Environmental activists", "Industry leaders", "NEA officials"]
+  },
+  {
+    id: 7,
+    title: "Mental Health in High-Pressure Singapore",
+    category: "Health",
+    heat: 82,
+    description: "Rising anxiety and depression rates among young Singaporeans",
+    relatedKeywords: ["burnout", "therapy stigma", "workplace stress"],
+    potentialGuests: ["Psychologists", "Corporate wellness experts", "Advocates"]
+  },
+  {
+    id: 8,
+    title: "Hawker Culture Preservation",
+    category: "Culture",
+    heat: 75,
+    description: "UNESCO heritage status vs rising costs threatening hawker trade",
+    relatedKeywords: ["hawker succession", "food prices", "heritage"],
+    potentialGuests: ["Veteran hawkers", "Young hawkerpreneurs", "Food critics"]
+  }
+];
+
+// Sample transcripts including Singlish examples
 const sampleTranscripts = [
   {
     title: "AI & Future of Work",
@@ -53,10 +201,28 @@ Guest: Those are the exceptions, not the rule. For every Amazon, there are hundr
 Host: So you're advocating for a more conservative approach?
 
 Guest: I'd call it a more rational approach. Founders should focus on building real businesses that solve real problems, not chasing vanity metrics to impress VCs. The best companies are often bootstrapped or lightly funded.`
+  },
+  {
+    title: "Singapore Tech Scene (Singlish)",
+    text: `Host: Wah, the tech scene in Singapore damn happening now sia. What you think about all these startups popping up?
+
+Guest: Ya lah, very shiok to see so many young entrepreneurs trying their luck. But honestly hor, I think many of them very kiasu - everyone want to be the next unicorn, but they don't understand the fundamentals leh.
+
+Host: Alamak, that's quite harsh. But I get what you mean lah. The competition is jialat.
+
+Guest: Exactly lor. And some more, the cost here is no joke. Office rent, hiring talent - everything so atas pricing. Small startups cannot tahan one.
+
+Host: So how? What's your advice for founders here?
+
+Guest: Don't be blur blur and just follow what angmoh VCs say. Understand the local market first. Go lepak at hawker centres, talk to real people. Singapore market is unique - very chim to understand if you just sit in your CBD office.
+
+Host: Steady lah. That's good advice. What about the AI wave? Can Singapore compete or not?
+
+Guest: Can lah, but must be realistic. We cannot wayang and pretend we're Silicon Valley. Better to focus on what we're good at - fintech, logistics, Southeast Asia expansion. Don't be kaypoh and try to do everything.`
   }
 ];
 
-// Mock argument extraction function
+// Mock argument extraction function with Singlish awareness
 interface Argument {
   id: string;
   speaker: string;
@@ -66,20 +232,61 @@ interface Argument {
   type: "claim" | "premise" | "rebuttal";
   premises: string[];
   contrarian_potential: number;
+  singlishTerms?: string[];
+}
+
+interface SinglishAnalysis {
+  termsFound: string[];
+  culturalContext: string[];
+  localRelevance: number;
 }
 
 interface ExtractionResult {
   arguments: Argument[];
   topics: string[];
   sentiment: { positive: number; neutral: number; negative: number };
-  contrarian_candidates: { name: string; reason: string; score: number }[];
+  contrarian_candidates: { name: string; reason: string; score: number; expertise: string }[];
+  singlishAnalysis?: SinglishAnalysis;
+  suggestedTrendingTopics: typeof trendingSGTopics;
 }
 
+const detectSinglish = (text: string): SinglishAnalysis => {
+  const lowerText = text.toLowerCase();
+  const termsFound: string[] = [];
+  
+  Object.keys(singlishDictionary).forEach(term => {
+    if (lowerText.includes(term)) {
+      termsFound.push(term);
+    }
+  });
+  
+  const culturalContext: string[] = [];
+  singaporeContext.topics.forEach(topic => {
+    if (lowerText.includes(topic.toLowerCase().split(" ")[0])) {
+      culturalContext.push(topic);
+    }
+  });
+  
+  // Check for cultural references
+  if (lowerText.includes("hdb") || lowerText.includes("housing")) culturalContext.push("HDB/Housing");
+  if (lowerText.includes("coe") || lowerText.includes("car")) culturalContext.push("COE/Transportation");
+  if (lowerText.includes("cpf") || lowerText.includes("retirement")) culturalContext.push("CPF/Retirement");
+  if (lowerText.includes("hawker") || lowerText.includes("makan")) culturalContext.push("Hawker Culture");
+  if (lowerText.includes("startup") || lowerText.includes("tech")) culturalContext.push("Tech/Startup Scene");
+  
+  const localRelevance = Math.min(1, (termsFound.length * 0.15) + (culturalContext.length * 0.1) + 0.3);
+  
+  return { termsFound, culturalContext, localRelevance };
+};
+
 const extractArguments = (text: string): ExtractionResult => {
-  // Simulate argument extraction based on text content
+  const singlishAnalysis = detectSinglish(text);
+  
   const hasAI = text.toLowerCase().includes("ai") || text.toLowerCase().includes("artificial");
   const hasStartup = text.toLowerCase().includes("startup") || text.toLowerCase().includes("venture") || text.toLowerCase().includes("funding");
   const hasWork = text.toLowerCase().includes("work") || text.toLowerCase().includes("job");
+  const hasSingapore = text.toLowerCase().includes("singapore") || singlishAnalysis.termsFound.length > 0;
+  const hasTech = text.toLowerCase().includes("tech") || text.toLowerCase().includes("technology");
   
   const arguments_list: Argument[] = [];
   
@@ -95,7 +302,8 @@ const extractArguments = (text: string): ExtractionResult => {
         "Rate of progress in LLMs is exponential",
         "Multimodal AI breakthroughs were previously thought impossible"
       ],
-      contrarian_potential: 0.85
+      contrarian_potential: 0.85,
+      singlishTerms: singlishAnalysis.termsFound.slice(0, 2)
     });
   }
   
@@ -131,7 +339,23 @@ const extractArguments = (text: string): ExtractionResult => {
     });
   }
   
-  // Add a generic argument if nothing specific found
+  if (hasSingapore && hasTech) {
+    arguments_list.push({
+      id: "arg-004",
+      speaker: "Guest",
+      claim: "Singapore startups should focus on regional strengths, not copy Silicon Valley",
+      topic: "Singapore Tech Ecosystem",
+      strength: 0.75,
+      type: "claim",
+      premises: [
+        "Local market understanding is crucial",
+        "Southeast Asia expansion is a natural advantage"
+      ],
+      contrarian_potential: 0.70,
+      singlishTerms: singlishAnalysis.termsFound
+    });
+  }
+  
   if (arguments_list.length === 0) {
     arguments_list.push({
       id: "arg-gen",
@@ -150,11 +374,30 @@ const extractArguments = (text: string): ExtractionResult => {
   
   const topics = Array.from(new Set(arguments_list.map(a => a.topic)));
   
+  // Singapore-specific contrarian candidates
   const contrarian_candidates = [
-    { name: "Dr. Gary Marcus", reason: "Known AI skeptic with opposing views on AGI timeline", score: -0.68 },
-    { name: "Yann LeCun", reason: "Advocates for different AI architectures", score: -0.45 },
-    { name: "Marc Andreessen", reason: "Strong proponent of growth-focused investing", score: -0.72 }
-  ].filter(() => Math.random() > 0.3);
+    { name: "Dr. Gary Marcus", reason: "Known AI skeptic with opposing views on AGI timeline", score: -0.68, expertise: "AI Research" },
+    { name: "Yann LeCun", reason: "Advocates for different AI architectures", score: -0.45, expertise: "Deep Learning" },
+    { name: "Marc Andreessen", reason: "Strong proponent of growth-focused investing", score: -0.72, expertise: "Venture Capital" },
+    { name: "Piyush Gupta (DBS)", reason: "Traditional banking perspective on fintech disruption", score: -0.55, expertise: "Banking & Finance" },
+    { name: "Ho Kwon Ping", reason: "Established business leader with contrarian startup views", score: -0.48, expertise: "Entrepreneurship" },
+    { name: "Tan Suee Chieh", reason: "CPF expert with alternative retirement planning views", score: -0.52, expertise: "Financial Planning" }
+  ];
+  
+  // Filter based on relevance
+  const relevantCandidates = hasSingapore 
+    ? contrarian_candidates.filter((_, i) => i >= 3 || Math.random() > 0.5)
+    : contrarian_candidates.filter((_, i) => i < 3 && Math.random() > 0.3);
+  
+  // Suggest trending topics based on content
+  const suggestedTrendingTopics = trendingSGTopics.filter(topic => {
+    const keywords = topic.relatedKeywords.join(" ").toLowerCase();
+    const title = topic.title.toLowerCase();
+    return hasAI && title.includes("ai") ||
+           hasStartup && title.includes("startup") ||
+           hasWork && (title.includes("work") || title.includes("job")) ||
+           hasSingapore;
+  }).slice(0, 4);
   
   return {
     arguments: arguments_list,
@@ -164,20 +407,87 @@ const extractArguments = (text: string): ExtractionResult => {
       neutral: 0.4 + Math.random() * 0.1,
       negative: 0.1 + Math.random() * 0.1
     },
-    contrarian_candidates: contrarian_candidates.slice(0, 2)
+    contrarian_candidates: relevantCandidates.slice(0, 3),
+    singlishAnalysis: singlishAnalysis.termsFound.length > 0 ? singlishAnalysis : undefined,
+    suggestedTrendingTopics: suggestedTrendingTopics.length > 0 ? suggestedTrendingTopics : trendingSGTopics.slice(0, 3)
   };
 };
 
+// YouTube URL validation and mock transcript extraction
+const extractYouTubeId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/shorts\/([^&\n?#]+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+};
+
+const mockYouTubeTranscript = (videoId: string): string => {
+  // Simulated transcripts for demo purposes
+  const mockTranscripts: Record<string, string> = {
+    default: `Host: Welcome back to the show. Today we're discussing the future of technology in Singapore.
+
+Guest: Thanks for having me lah. Very excited to share my thoughts on where Singapore is heading.
+
+Host: So what's your take on the AI revolution? Is Singapore ready or not?
+
+Guest: Wah, this one quite chim topic sia. I think Singapore is well-positioned, but we cannot be complacent. The kiasu mentality actually helps here - everyone scared to be left behind, so they adopt new technology quickly.
+
+Host: But some people say we're too focused on following trends rather than innovating ourselves.
+
+Guest: Ya, that's a valid point lor. We need more original thinking. Too many startups here just copy what works overseas. Must develop our own unique solutions for Southeast Asia.
+
+Host: What about the workforce? Are Singaporeans ready for AI?
+
+Guest: Honestly hor, I think there's a gap. SkillsFuture is good, but not enough. Companies need to invest more in training. Cannot just expect government to do everything.
+
+Host: Alamak, that's quite a strong statement. Any final thoughts?
+
+Guest: Just that we need to be steady and focused. Don't wayang - actually do the work. Singapore can be a leader in AI adoption if we play to our strengths.`
+  };
+  
+  return mockTranscripts[videoId] || mockTranscripts.default;
+};
+
 export default function TranscriptDemo() {
+  const [inputMode, setInputMode] = useState<"text" | "youtube">("text");
   const [transcript, setTranscript] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoadingYoutube, setIsLoadingYoutube] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ExtractionResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [selectedTrendingTopic, setSelectedTrendingTopic] = useState<typeof trendingSGTopics[0] | null>(null);
+
+  const handleYoutubeImport = useCallback(async () => {
+    const videoId = extractYouTubeId(youtubeUrl);
+    if (!videoId) {
+      toast.error("Please enter a valid YouTube URL");
+      return;
+    }
+
+    setIsLoadingYoutube(true);
+    toast.info("Fetching transcript from YouTube...");
+
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const extractedTranscript = mockYouTubeTranscript(videoId);
+    setTranscript(extractedTranscript);
+    setInputMode("text");
+    setIsLoadingYoutube(false);
+    toast.success("Transcript extracted successfully!");
+  }, [youtubeUrl]);
 
   const handleAnalyze = useCallback(async () => {
     if (!transcript.trim()) {
-      toast.error("Please enter or select a transcript to analyze");
+      toast.error("Please enter or import a transcript to analyze");
       return;
     }
 
@@ -185,7 +495,6 @@ export default function TranscriptDemo() {
     setProgress(0);
     setResult(null);
 
-    // Simulate analysis progress
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 90) {
@@ -196,26 +505,34 @@ export default function TranscriptDemo() {
       });
     }, 200);
 
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 2500));
 
     clearInterval(progressInterval);
     setProgress(100);
 
-    // Extract arguments
     const extractedResult = extractArguments(transcript);
     
     await new Promise(resolve => setTimeout(resolve, 300));
     
     setResult(extractedResult);
     setIsAnalyzing(false);
-    toast.success(`Extracted ${extractedResult.arguments.length} arguments from transcript`);
+    
+    const singlishMsg = extractedResult.singlishAnalysis 
+      ? ` (${extractedResult.singlishAnalysis.termsFound.length} Singlish terms detected)`
+      : "";
+    toast.success(`Extracted ${extractedResult.arguments.length} arguments${singlishMsg}`);
   }, [transcript]);
 
   const handleSampleSelect = (sample: typeof sampleTranscripts[0]) => {
     setTranscript(sample.text);
     setResult(null);
+    setInputMode("text");
     toast.info(`Loaded sample: "${sample.title}"`);
+  };
+
+  const handleTrendingTopicSelect = (topic: typeof trendingSGTopics[0]) => {
+    setSelectedTrendingTopic(topic);
+    toast.info(`Selected trending topic: "${topic.title}"`);
   };
 
   const handleCopyResult = () => {
@@ -243,9 +560,123 @@ export default function TranscriptDemo() {
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold mb-6">Try It Yourself</h2>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            Paste a podcast transcript or select a sample to see how the AI agent extracts 
-            key arguments, identifies topics, and suggests contrarian candidates.
+            Import a podcast from YouTube, paste a transcript, or explore trending Singapore topics.
+            Our AI understands <span className="text-primary font-medium">Singlish</span> and local cultural context.
           </p>
+        </motion.div>
+
+        {/* Trending Singapore Topics Section */}
+        <motion.div
+          className="max-w-5xl mx-auto mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
+          <Card className="card-glow overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                Trending Topics in Singapore
+                <Badge variant="outline" className="ml-2 bg-red-500/10 text-red-400 border-red-500/20">
+                  <Flame className="w-3 h-3 mr-1" />
+                  Live
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                Hot topics for your next podcast episode - click to explore potential guests and angles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {trendingSGTopics.map((topic, index) => (
+                  <motion.button
+                    key={topic.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => handleTrendingTopicSelect(topic)}
+                    className={`p-4 rounded-lg border text-left transition-all hover:scale-[1.02] ${
+                      selectedTrendingTopic?.id === topic.id
+                        ? "bg-primary/10 border-primary/40"
+                        : "bg-card/50 border-border hover:border-primary/30"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <Badge variant="outline" className="text-xs bg-muted/50">
+                        {topic.category}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Flame className={`w-3 h-3 ${topic.heat > 85 ? "text-red-400" : "text-orange-400"}`} />
+                        <span className={topic.heat > 85 ? "text-red-400" : "text-orange-400"}>{topic.heat}%</span>
+                      </div>
+                    </div>
+                    <h4 className="font-medium text-sm mb-1 line-clamp-2">{topic.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{topic.description}</p>
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Expanded Topic Details */}
+              <AnimatePresence>
+                {selectedTrendingTopic && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h4 className="font-semibold text-lg flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          {selectedTrendingTopic.title}
+                        </h4>
+                        <p className="text-sm text-muted-foreground mt-1">{selectedTrendingTopic.description}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedTrendingTopic(null)}
+                        className="text-xs"
+                      >
+                        Close
+                      </Button>
+                    </div>
+                    
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <h5 className="text-sm font-medium mb-2 flex items-center gap-1">
+                          <Target className="w-3 h-3" />
+                          Related Keywords
+                        </h5>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedTrendingTopic.relatedKeywords.map((keyword, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {keyword}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-medium mb-2 flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          Potential Guests
+                        </h5>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedTrendingTopic.potentialGuests.map((guest, i) => (
+                            <Badge key={i} variant="outline" className="text-xs bg-secondary/10">
+                              {guest}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
         </motion.div>
 
         <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8">
@@ -263,41 +694,88 @@ export default function TranscriptDemo() {
                   Transcript Input
                 </CardTitle>
                 <CardDescription>
-                  Paste your transcript or choose a sample below
+                  Import from YouTube or paste your transcript
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Sample Buttons */}
-                <div className="flex flex-wrap gap-2">
-                  {sampleTranscripts.map((sample, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSampleSelect(sample)}
-                      className="text-xs"
-                    >
-                      {sample.title}
-                    </Button>
-                  ))}
-                </div>
+                {/* Input Mode Tabs */}
+                <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "text" | "youtube")}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="text" className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Paste Text
+                    </TabsTrigger>
+                    <TabsTrigger value="youtube" className="flex items-center gap-2">
+                      <Youtube className="w-4 h-4" />
+                      YouTube URL
+                    </TabsTrigger>
+                  </TabsList>
 
-                {/* Textarea */}
-                <Textarea
-                  placeholder="Paste your podcast transcript here..."
-                  value={transcript}
-                  onChange={(e) => {
-                    setTranscript(e.target.value);
-                    setResult(null);
-                  }}
-                  className="min-h-[280px] bg-card border-border resize-none font-mono text-sm"
-                />
+                  <TabsContent value="youtube" className="space-y-4 mt-4">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://youtube.com/watch?v=..."
+                        value={youtubeUrl}
+                        onChange={(e) => setYoutubeUrl(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={handleYoutubeImport}
+                        disabled={isLoadingYoutube || !youtubeUrl.trim()}
+                        className="shrink-0"
+                      >
+                        {isLoadingYoutube ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Import
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Paste a YouTube video URL to automatically extract and analyze the transcript
+                    </p>
+                  </TabsContent>
+
+                  <TabsContent value="text" className="space-y-4 mt-4">
+                    {/* Sample Buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      {sampleTranscripts.map((sample, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSampleSelect(sample)}
+                          className={sample.title.includes("Singlish") ? "border-primary/40 text-primary" : ""}
+                        >
+                          {sample.title.includes("Singlish") && <Globe className="w-3 h-3 mr-1" />}
+                          {sample.title}
+                        </Button>
+                      ))}
+                    </div>
+
+                    {/* Textarea */}
+                    <Textarea
+                      placeholder="Paste your podcast transcript here..."
+                      value={transcript}
+                      onChange={(e) => {
+                        setTranscript(e.target.value);
+                        setResult(null);
+                      }}
+                      className="min-h-[220px] bg-card border-border resize-none font-mono text-sm"
+                    />
+                  </TabsContent>
+                </Tabs>
 
                 {/* Character Count */}
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{transcript.length} characters</span>
-                  <span>{transcript.split(/\s+/).filter(Boolean).length} words</span>
-                </div>
+                {transcript && (
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{transcript.length} characters</span>
+                    <span>{transcript.split(/\s+/).filter(Boolean).length} words</span>
+                  </div>
+                )}
 
                 {/* Analyze Button */}
                 <Button 
@@ -330,9 +808,10 @@ export default function TranscriptDemo() {
                     >
                       <Progress value={progress} className="h-2" />
                       <p className="text-xs text-muted-foreground text-center">
-                        {progress < 30 && "Parsing transcript..."}
-                        {progress >= 30 && progress < 60 && "Identifying arguments..."}
-                        {progress >= 60 && progress < 90 && "Analyzing viewpoints..."}
+                        {progress < 25 && "Parsing transcript..."}
+                        {progress >= 25 && progress < 50 && "Detecting Singlish & cultural context..."}
+                        {progress >= 50 && progress < 75 && "Identifying arguments..."}
+                        {progress >= 75 && progress < 90 && "Finding contrarian candidates..."}
                         {progress >= 90 && "Generating results..."}
                       </p>
                     </motion.div>
@@ -373,7 +852,7 @@ export default function TranscriptDemo() {
                   )}
                 </div>
                 <CardDescription>
-                  Extracted arguments and contrarian candidates
+                  Extracted arguments, Singlish analysis, and contrarian candidates
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -415,8 +894,35 @@ export default function TranscriptDemo() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="space-y-6 max-h-[450px] overflow-y-auto pr-2"
+                      className="space-y-5 max-h-[500px] overflow-y-auto pr-2"
                     >
+                      {/* Singlish Analysis */}
+                      {result.singlishAnalysis && (
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <Globe className="w-4 h-4 text-primary" />
+                            Singlish & Cultural Context Detected
+                          </h4>
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-1">
+                              {result.singlishAnalysis.termsFound.map((term, i) => (
+                                <Badge key={i} className="text-xs bg-primary/20 text-primary border-0">
+                                  {term}
+                                  <span className="ml-1 opacity-70">
+                                    ({singlishDictionary[term]?.meaning || "Local term"})
+                                  </span>
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>Local Relevance:</span>
+                              <Progress value={result.singlishAnalysis.localRelevance * 100} className="h-1.5 w-20" />
+                              <span>{Math.round(result.singlishAnalysis.localRelevance * 100)}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Topics */}
                       <div>
                         <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
@@ -503,13 +1009,43 @@ export default function TranscriptDemo() {
                                 className="p-3 rounded-lg bg-destructive/5 border border-destructive/20"
                               >
                                 <div className="flex items-center justify-between mb-1">
-                                  <span className="font-medium text-sm">{candidate.name}</span>
+                                  <div>
+                                    <span className="font-medium text-sm">{candidate.name}</span>
+                                    <Badge variant="outline" className="ml-2 text-xs bg-muted/50">
+                                      {candidate.expertise}
+                                    </Badge>
+                                  </div>
                                   <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
                                     Score: {candidate.score.toFixed(2)}
                                   </Badge>
                                 </div>
                                 <p className="text-xs text-muted-foreground">{candidate.reason}</p>
                               </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Suggested Trending Topics */}
+                      {result.suggestedTrendingTopics.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                            <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20">
+                              <TrendingUp className="w-3 h-3 mr-1" />
+                              Related Trending Topics
+                            </Badge>
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {result.suggestedTrendingTopics.map((topic, i) => (
+                              <Badge 
+                                key={i} 
+                                variant="outline" 
+                                className="text-xs cursor-pointer hover:bg-orange-500/10 transition-colors"
+                                onClick={() => handleTrendingTopicSelect(topic)}
+                              >
+                                <Flame className="w-3 h-3 mr-1 text-orange-400" />
+                                {topic.title}
+                              </Badge>
                             ))}
                           </div>
                         </div>
