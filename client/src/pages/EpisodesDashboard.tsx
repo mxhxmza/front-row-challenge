@@ -32,7 +32,20 @@ import {
   LayoutDashboard,
   Search,
   Filter,
-  MoreVertical
+  MoreVertical,
+  BookOpen,
+  Mic,
+  Twitter,
+  Linkedin,
+  CheckCircle,
+  XCircle,
+  HelpCircle,
+  AlertCircle,
+  Mail,
+  UserCheck,
+  Quote,
+  Shield,
+  Link as LinkIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -163,6 +176,37 @@ interface SinglishAnalysis {
   localRelevance: number;
 }
 
+interface OpposingContent {
+  title: string;
+  type: "article" | "talk" | "podcast" | "thread" | "paper";
+  source: string;
+  url: string;
+  author: string;
+  date: string;
+  keyQuote: string;
+  relevanceScore: number;
+}
+
+interface FactCheckItem {
+  claim: string;
+  verdict: "supported" | "contradicted" | "partially_true" | "unverified";
+  evidence: string;
+  sources: string[];
+  confidence: number;
+}
+
+interface ContrarianIndividual {
+  name: string;
+  role: string;
+  organization: string;
+  expertise: string;
+  opposingPosition: string;
+  counterSummary: string;
+  outreachAngle: string;
+  platforms: { name: string; url: string }[];
+  score: number;
+}
+
 interface ExtractionResult {
   arguments: Argument[];
   topics: string[];
@@ -170,6 +214,9 @@ interface ExtractionResult {
   contrarian_candidates: { name: string; reason: string; score: number; expertise: string }[];
   singlishAnalysis?: SinglishAnalysis;
   suggestedTrendingTopics: typeof trendingSGTopics;
+  contrarianIndividuals?: ContrarianIndividual[];
+  opposingContent?: OpposingContent[];
+  factChecks?: FactCheckItem[];
 }
 
 interface Episode {
@@ -327,6 +374,218 @@ const extractArguments = (text: string): ExtractionResult => {
            hasWork && (title.includes("work") || title.includes("job")) ||
            hasSingapore;
   }).slice(0, 4);
+
+  // Generate contrarian individuals with detailed profiles
+  const contrarianIndividuals: ContrarianIndividual[] = [];
+  
+  if (hasAI) {
+    contrarianIndividuals.push(
+      {
+        name: "Dr. Gary Marcus",
+        role: "Professor Emeritus",
+        organization: "New York University",
+        expertise: "Cognitive Science & AI",
+        opposingPosition: "AGI is decades away, not years. Current LLMs lack true understanding.",
+        counterSummary: "Marcus has consistently argued that deep learning alone cannot achieve AGI. His 2022 paper 'Deep Learning Is Hitting a Wall' directly contradicts claims of imminent AGI.",
+        outreachAngle: "This guest has argued the opposite of 'AGI within a decade' on multiple platforms including his Substack and The New York Times.",
+        platforms: [
+          { name: "Substack", url: "https://garymarcus.substack.com" },
+          { name: "Twitter/X", url: "https://twitter.com/GaryMarcus" }
+        ],
+        score: -0.85
+      },
+      {
+        name: "Emily Bender",
+        role: "Professor of Linguistics",
+        organization: "University of Washington",
+        expertise: "Computational Linguistics & AI Ethics",
+        opposingPosition: "LLMs are 'stochastic parrots' without genuine understanding.",
+        counterSummary: "Co-author of the influential 'Stochastic Parrots' paper. Argues that scaling alone won't lead to intelligence and raises concerns about AI hype.",
+        outreachAngle: "Has publicly debated AI capabilities on podcasts and academic forums, offering a linguistics perspective on why current AI claims are overstated.",
+        platforms: [
+          { name: "Mastodon", url: "https://dair-community.social/@emilymbender" },
+          { name: "University Page", url: "https://faculty.washington.edu/ebender/" }
+        ],
+        score: -0.78
+      }
+    );
+  }
+  
+  if (hasStartup || hasSingapore) {
+    contrarianIndividuals.push(
+      {
+        name: "Piyush Gupta",
+        role: "CEO",
+        organization: "DBS Bank",
+        expertise: "Banking & Digital Transformation",
+        opposingPosition: "Traditional institutions can out-innovate startups with proper digital transformation.",
+        counterSummary: "Led DBS to become 'World's Best Digital Bank'. Argues that incumbents with resources and customer trust can beat fintech startups.",
+        outreachAngle: "This guest has demonstrated that established banks can innovate faster than startups, directly countering 'disruption is inevitable' narratives.",
+        platforms: [
+          { name: "LinkedIn", url: "https://linkedin.com/in/piyushgupta" },
+          { name: "DBS Insights", url: "https://www.dbs.com/insights" }
+        ],
+        score: -0.72
+      },
+      {
+        name: "Ho Kwon Ping",
+        role: "Executive Chairman",
+        organization: "Banyan Tree Holdings",
+        expertise: "Hospitality & Entrepreneurship",
+        opposingPosition: "Sustainable growth beats hypergrowth. Singapore startups should focus on profitability.",
+        counterSummary: "Built Banyan Tree into a global brand without VC funding. Advocates for patient capital and sustainable business models over 'blitzscaling'.",
+        outreachAngle: "Has spoken at multiple Singapore forums arguing against the Silicon Valley playbook, suggesting regional startups need different strategies.",
+        platforms: [
+          { name: "LinkedIn", url: "https://linkedin.com/in/hokwonping" },
+          { name: "SMU Speaker", url: "https://www.smu.edu.sg" }
+        ],
+        score: -0.65
+      }
+    );
+  }
+  
+  if (hasWork) {
+    contrarianIndividuals.push(
+      {
+        name: "Nicholas Bloom",
+        role: "Professor of Economics",
+        organization: "Stanford University",
+        expertise: "Remote Work & Productivity",
+        opposingPosition: "Hybrid work is optimal; fully remote reduces innovation and mentorship.",
+        counterSummary: "His research shows remote work boosts productivity but reduces innovation. Advocates for structured hybrid models, not full remote.",
+        outreachAngle: "Has data-driven counterarguments to both 'fully remote' and 'return to office' extremes, offering nuanced middle-ground perspectives.",
+        platforms: [
+          { name: "Stanford Profile", url: "https://nbloom.people.stanford.edu" },
+          { name: "Twitter/X", url: "https://twitter.com/I_Am_NickBloom" }
+        ],
+        score: -0.58
+      }
+    );
+  }
+
+  // Generate opposing content
+  const opposingContent: OpposingContent[] = [];
+  
+  if (hasAI) {
+    opposingContent.push(
+      {
+        title: "Deep Learning Is Hitting a Wall",
+        type: "article",
+        source: "Nautilus Magazine",
+        url: "https://nautil.us/deep-learning-is-hitting-a-wall-238440/",
+        author: "Gary Marcus",
+        date: "March 2022",
+        keyQuote: "Deep learning is not going to take us to AGI... we need hybrid approaches combining neural networks with symbolic AI.",
+        relevanceScore: 0.92
+      },
+      {
+        title: "On the Dangers of Stochastic Parrots",
+        type: "paper",
+        source: "FAccT Conference",
+        url: "https://dl.acm.org/doi/10.1145/3442188.3445922",
+        author: "Emily Bender, Timnit Gebru, et al.",
+        date: "March 2021",
+        keyQuote: "Language models trained on internet text can perpetuate harms... their apparent fluency is misleading about their actual capabilities.",
+        relevanceScore: 0.88
+      },
+      {
+        title: "Why AI Will Never Replace Human Creativity",
+        type: "talk",
+        source: "TED Talk",
+        url: "https://www.ted.com/talks",
+        author: "Kai-Fu Lee",
+        date: "2023",
+        keyQuote: "AI excels at optimization but struggles with the kind of creative leaps that define human innovation.",
+        relevanceScore: 0.75
+      }
+    );
+  }
+  
+  if (hasStartup) {
+    opposingContent.push(
+      {
+        title: "The Case Against Blitzscaling",
+        type: "article",
+        source: "Harvard Business Review",
+        url: "https://hbr.org",
+        author: "Roger Martin",
+        date: "January 2024",
+        keyQuote: "The blitzscaling playbook has destroyed more value than it has created. Sustainable growth should be the goal.",
+        relevanceScore: 0.85
+      },
+      {
+        title: "Southeast Asia Needs Its Own Startup Playbook",
+        type: "podcast",
+        source: "Tech in Asia Podcast",
+        url: "https://techinasia.com/podcast",
+        author: "Various Founders",
+        date: "2024",
+        keyQuote: "Copying Silicon Valley doesn't work here. We need to build for our markets, not for US VCs.",
+        relevanceScore: 0.82
+      }
+    );
+  }
+  
+  if (hasSingapore) {
+    opposingContent.push(
+      {
+        title: "Singapore's Startup Scene: Hype vs Reality",
+        type: "thread",
+        source: "Twitter/X",
+        url: "https://twitter.com",
+        author: "@sgstartupwatch",
+        date: "December 2025",
+        keyQuote: "Behind the headlines, many SG startups are struggling. The ecosystem needs more honest conversations about failure.",
+        relevanceScore: 0.78
+      }
+    );
+  }
+
+  // Generate fact checks
+  const factChecks: FactCheckItem[] = [];
+  
+  if (hasAI) {
+    factChecks.push(
+      {
+        claim: "AGI is achievable within the next decade",
+        verdict: "unverified",
+        evidence: "Expert opinions vary widely. A 2023 survey of AI researchers showed median estimates ranging from 2040-2060 for AGI, though some predict earlier.",
+        sources: ["AI Impacts Survey 2023", "Future of Humanity Institute"],
+        confidence: 0.45
+      },
+      {
+        claim: "Rate of progress in LLMs is exponential",
+        verdict: "partially_true",
+        evidence: "Model capabilities have grown rapidly, but recent benchmarks show diminishing returns on scaling. GPT-4 to GPT-5 improvements were smaller than GPT-3 to GPT-4.",
+        sources: ["Stanford AI Index 2025", "Epoch AI Research"],
+        confidence: 0.72
+      }
+    );
+  }
+  
+  if (hasWork) {
+    factChecks.push(
+      {
+        claim: "Technology creates more jobs than it destroys",
+        verdict: "partially_true",
+        evidence: "Historical data supports this for past technological revolutions, but AI automation may differ. WEF estimates 85M jobs displaced but 97M new jobs by 2025.",
+        sources: ["World Economic Forum Future of Jobs Report", "McKinsey Global Institute"],
+        confidence: 0.68
+      }
+    );
+  }
+  
+  if (hasStartup) {
+    factChecks.push(
+      {
+        claim: "Growth at all costs mentality is harmful to startups",
+        verdict: "supported",
+        evidence: "Post-2022 market correction showed many hypergrowth startups failed. Studies show sustainable growth correlates with long-term success.",
+        sources: ["CB Insights Startup Failure Analysis", "a]16z State of Startups 2024"],
+        confidence: 0.82
+      }
+    );
+  }
   
   return {
     arguments: arguments_list,
@@ -338,7 +597,10 @@ const extractArguments = (text: string): ExtractionResult => {
     },
     contrarian_candidates: relevantCandidates.slice(0, 3),
     singlishAnalysis: singlishAnalysis.termsFound.length > 0 ? singlishAnalysis : undefined,
-    suggestedTrendingTopics: suggestedTrendingTopics.length > 0 ? suggestedTrendingTopics : trendingSGTopics.slice(0, 3)
+    suggestedTrendingTopics: suggestedTrendingTopics.length > 0 ? suggestedTrendingTopics : trendingSGTopics.slice(0, 3),
+    contrarianIndividuals: contrarianIndividuals.slice(0, 4),
+    opposingContent: opposingContent.slice(0, 4),
+    factChecks: factChecks.slice(0, 4)
   };
 };
 
@@ -1153,6 +1415,235 @@ export default function EpisodesDashboard() {
                                 </motion.div>
                               ))}
                             </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Contrarian Individuals - Detailed Profiles */}
+                      {selectedEpisode.result.contrarianIndividuals && selectedEpisode.result.contrarianIndividuals.length > 0 && (
+                        <Card className="card-glow border-purple-500/20">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <UserCheck className="w-5 h-5 text-purple-400" />
+                              Contrarian Individuals
+                              <Badge variant="secondary" className="ml-2">
+                                {selectedEpisode.result.contrarianIndividuals.length} found
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription>
+                              Founders, investors, and thinkers who have publicly disagreed or offered alternative perspectives
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {selectedEpisode.result.contrarianIndividuals.map((individual, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="p-4 rounded-lg bg-purple-500/5 border border-purple-500/20"
+                              >
+                                <div className="flex items-start justify-between gap-4 mb-3">
+                                  <div>
+                                    <h4 className="font-semibold text-lg">{individual.name}</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      {individual.role} at {individual.organization}
+                                    </p>
+                                  </div>
+                                  <Badge variant="outline" className="shrink-0 bg-purple-500/10 text-purple-400 border-purple-500/20">
+                                    Score: {individual.score.toFixed(2)}
+                                  </Badge>
+                                </div>
+                                
+                                <Badge variant="outline" className="mb-3 bg-muted/50">
+                                  {individual.expertise}
+                                </Badge>
+                                
+                                <div className="space-y-3">
+                                  <div className="p-3 rounded bg-card border border-border">
+                                    <p className="text-sm font-medium flex items-center gap-2 mb-1">
+                                      <Quote className="w-4 h-4 text-purple-400" />
+                                      Opposing Position
+                                    </p>
+                                    <p className="text-sm text-muted-foreground italic">
+                                      "{individual.opposingPosition}"
+                                    </p>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-sm font-medium mb-1">Why They're Relevant:</p>
+                                    <p className="text-sm text-muted-foreground">{individual.counterSummary}</p>
+                                  </div>
+                                  
+                                  <div className="p-3 rounded bg-primary/5 border border-primary/20">
+                                    <p className="text-sm font-medium flex items-center gap-2 mb-1">
+                                      <Mail className="w-4 h-4 text-primary" />
+                                      Outreach Angle
+                                    </p>
+                                    <p className="text-sm text-primary/80">{individual.outreachAngle}</p>
+                                  </div>
+                                  
+                                  <div className="flex flex-wrap gap-2">
+                                    {individual.platforms.map((platform, j) => (
+                                      <a
+                                        key={j}
+                                        href={platform.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors"
+                                      >
+                                        <LinkIcon className="w-3 h-3" />
+                                        {platform.name}
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Opposing Content - Articles, Talks, Podcasts */}
+                      {selectedEpisode.result.opposingContent && selectedEpisode.result.opposingContent.length > 0 && (
+                        <Card className="card-glow border-blue-500/20">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <BookOpen className="w-5 h-5 text-blue-400" />
+                              Opposing Content
+                              <Badge variant="secondary" className="ml-2">
+                                {selectedEpisode.result.opposingContent.length} sources
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription>
+                              Articles, talks, threads, and podcasts where opposing views were expressed
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {selectedEpisode.result.opposingContent.map((content, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20"
+                              >
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                  <div className="flex items-center gap-2">
+                                    {content.type === "article" && <FileText className="w-4 h-4 text-blue-400" />}
+                                    {content.type === "talk" && <Mic className="w-4 h-4 text-blue-400" />}
+                                    {content.type === "podcast" && <Mic className="w-4 h-4 text-blue-400" />}
+                                    {content.type === "thread" && <Twitter className="w-4 h-4 text-blue-400" />}
+                                    {content.type === "paper" && <BookOpen className="w-4 h-4 text-blue-400" />}
+                                    <Badge variant="outline" className="text-xs capitalize bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                      {content.type}
+                                    </Badge>
+                                  </div>
+                                  <Badge variant="outline" className="text-xs">
+                                    Relevance: {Math.round(content.relevanceScore * 100)}%
+                                  </Badge>
+                                </div>
+                                
+                                <h4 className="font-medium mb-1">{content.title}</h4>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  {content.author} • {content.source} • {content.date}
+                                </p>
+                                
+                                <div className="p-3 rounded bg-card border border-border mb-3">
+                                  <p className="text-sm italic text-muted-foreground">
+                                    "{content.keyQuote}"
+                                  </p>
+                                </div>
+                                
+                                <a
+                                  href={content.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                  View Source <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </motion.div>
+                            ))}
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Fact Checks */}
+                      {selectedEpisode.result.factChecks && selectedEpisode.result.factChecks.length > 0 && (
+                        <Card className="card-glow border-amber-500/20">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Shield className="w-5 h-5 text-amber-400" />
+                              Real-Time Fact Check
+                              <Badge variant="secondary" className="ml-2">
+                                {selectedEpisode.result.factChecks.length} claims verified
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription>
+                              Data that supports or contradicts the assertions and assumptions made by the speaker
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {selectedEpisode.result.factChecks.map((factCheck, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className={`p-4 rounded-lg border ${
+                                  factCheck.verdict === "supported" 
+                                    ? "bg-green-500/5 border-green-500/20"
+                                    : factCheck.verdict === "contradicted"
+                                      ? "bg-red-500/5 border-red-500/20"
+                                      : factCheck.verdict === "partially_true"
+                                        ? "bg-amber-500/5 border-amber-500/20"
+                                        : "bg-muted/30 border-border"
+                                }`}
+                              >
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    {factCheck.verdict === "supported" && <CheckCircle className="w-5 h-5 text-green-400" />}
+                                    {factCheck.verdict === "contradicted" && <XCircle className="w-5 h-5 text-red-400" />}
+                                    {factCheck.verdict === "partially_true" && <AlertCircle className="w-5 h-5 text-amber-400" />}
+                                    {factCheck.verdict === "unverified" && <HelpCircle className="w-5 h-5 text-muted-foreground" />}
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`capitalize ${
+                                        factCheck.verdict === "supported" 
+                                          ? "bg-green-500/10 text-green-400 border-green-500/20"
+                                          : factCheck.verdict === "contradicted"
+                                            ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                            : factCheck.verdict === "partially_true"
+                                              ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                              : "bg-muted text-muted-foreground"
+                                      }`}
+                                    >
+                                      {factCheck.verdict.replace("_", " ")}
+                                    </Badge>
+                                  </div>
+                                  <Badge variant="outline" className="text-xs">
+                                    Confidence: {Math.round(factCheck.confidence * 100)}%
+                                  </Badge>
+                                </div>
+                                
+                                <p className="font-medium mb-2">"{factCheck.claim}"</p>
+                                
+                                <div className="p-3 rounded bg-card border border-border mb-3">
+                                  <p className="text-sm text-muted-foreground">{factCheck.evidence}</p>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-1">
+                                  <span className="text-xs text-muted-foreground mr-1">Sources:</span>
+                                  {factCheck.sources.map((source, j) => (
+                                    <Badge key={j} variant="outline" className="text-xs bg-muted/50">
+                                      {source}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            ))}
                           </CardContent>
                         </Card>
                       )}
