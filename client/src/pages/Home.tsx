@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import TranscriptDemo from "@/components/TranscriptDemo";
+import { Link } from "wouter";
 
 // Animation variants
 const fadeInUp = {
@@ -63,7 +63,7 @@ export default function Home() {
             <a href="#capabilities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Capabilities</a>
             <a href="#architecture" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Architecture</a>
             <a href="#innovations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Innovations</a>
-            <a href="#demo" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Try Demo</a>
+            <Link href="/episodes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Episodes Dashboard</Link>
           </div>
         </div>
       </nav>
@@ -527,8 +527,75 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Interactive Transcript Demo */}
-      <TranscriptDemo />
+      {/* CTA to Episodes Dashboard */}
+      <section id="demo" className="py-24 relative">
+        <div className="container">
+          <motion.div 
+            className="max-w-4xl mx-auto text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              Try It Yourself
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6">Episodes Dashboard</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-2xl mx-auto">
+              Upload podcast transcripts, import from YouTube, and analyze episodes with our AI-powered 
+              argument extraction. Track all your episodes in one place with Singlish language support 
+              and trending Singapore topics.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/episodes">
+                <Button size="lg" className="glow-cyan px-8 gap-2">
+                  <FileText className="w-5 h-5" />
+                  Open Episodes Dashboard
+                </Button>
+              </Link>
+            </div>
+            
+            {/* Feature highlights */}
+            <motion.div 
+              className="grid sm:grid-cols-3 gap-6 mt-16"
+              variants={staggerContainer}
+            >
+              {[
+                {
+                  icon: FileText,
+                  title: "YouTube Import",
+                  description: "Paste any YouTube URL to automatically extract and analyze podcast transcripts"
+                },
+                {
+                  icon: MessageSquare,
+                  title: "Singlish Support",
+                  description: "AI trained on Singlish expressions and Singaporean cultural context"
+                },
+                {
+                  icon: BarChart3,
+                  title: "Episode History",
+                  description: "Track all your analyzed episodes with persistent storage"
+                }
+              ].map((feature, index) => (
+                <motion.div key={index} variants={scaleIn}>
+                  <Card className="card-glow h-full text-left">
+                    <CardHeader>
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center mb-3">
+                        <feature.icon className="w-5 h-5 text-primary" />
+                      </div>
+                      <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-sm">{feature.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Metrics Section */}
       <section className="py-24 relative bg-card/30">
