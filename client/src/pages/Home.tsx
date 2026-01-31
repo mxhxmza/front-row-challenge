@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import TranscriptDemo from "@/components/TranscriptDemo";
 
 // Animation variants
 const fadeInUp = {
@@ -62,6 +63,7 @@ export default function Home() {
             <a href="#capabilities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Capabilities</a>
             <a href="#architecture" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Architecture</a>
             <a href="#innovations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Innovations</a>
+            <a href="#demo" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Try Demo</a>
           </div>
         </div>
       </nav>
@@ -525,76 +527,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Demo Section with Interactive Elements */}
-      <section className="py-24 relative">
-        <div className="container">
-          <motion.div 
-            className="max-w-3xl mx-auto text-center mb-16"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeInUp}
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6">Sample Output</h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              An example of the structured data the agent produces from transcript analysis.
-            </p>
-          </motion.div>
-
-          <motion.div 
-            className="max-w-3xl mx-auto"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={scaleIn}
-          >
-            <Card className="card-glow overflow-hidden">
-              <CardHeader className="border-b border-border bg-card/50">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-destructive" />
-                  <div className="w-3 h-3 rounded-full bg-secondary" />
-                  <div className="w-3 h-3 rounded-full bg-primary" />
-                  <span className="ml-4 text-sm text-muted-foreground font-mono">argument_output.json</span>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <pre className="p-6 text-sm overflow-x-auto font-mono">
-                  <code className="text-foreground">
-{`{
-  "argument_id": "arg-001",
-  "speaker": "Guest A",
-  "timestamp": "00:15:32",
-  "topic": "Artificial General Intelligence",
-  "claim": "AGI is achievable within the next decade.",
-  "intellectual_doppelganger_score": 0.72,
-  "premises": [
-    {
-      "premise_id": "p-001",
-      "text": "The rate of progress in LLMs is exponential.",
-      "strength_score": 0.85
-    },
-    {
-      "premise_id": "p-002",
-      "text": "Multimodal AI breakthroughs were previously impossible.",
-      "strength_score": 0.78
-    }
-  ],
-  "contrarian_candidates": [
-    {
-      "name": "Dr. Gary Marcus",
-      "affiliation": "NYU",
-      "doppelganger_score": -0.68,
-      "source": "Substack essay, 2024"
-    }
-  ]
-}`}
-                  </code>
-                </pre>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </section>
+      {/* Interactive Transcript Demo */}
+      <TranscriptDemo />
 
       {/* Metrics Section */}
       <section className="py-24 relative bg-card/30">
