@@ -5,3 +5,4 @@
 - [x] Fix LinkedIn link to only show when available
 - [x] Remove Copy JSON button from episode details
 - [x] Remove Contrarian Candidates section (keep only Contrarian Individuals)
+- [x] Update Send Email button to open Gmail compose with pre-filled draft

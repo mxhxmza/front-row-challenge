@@ -937,32 +937,27 @@ Outreach Context: ${individual.outreachAngle}`;
     }
   };
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = () => {
     if (!selectedIndividual?.email) {
       toast.error("No email address available for this contact");
       return;
     }
 
-    if (!isAuthenticated) {
-      toast.error("Please login to send emails");
-      window.location.href = getLoginUrl();
-      return;
-    }
-
-    setIsSendingEmail(true);
-    
     // Extract subject from email draft
     const subjectMatch = emailDraft.match(/^Subject:\s*(.+)$/m);
     const subject = subjectMatch ? subjectMatch[1] : `Invitation to Discuss ${selectedIndividual.expertise} on Front Row Challenge`;
-    const body = emailDraft.replace(/^Subject:.*\n\n/, "");
-
-    sendEmailMutation.mutate({
-      to: selectedIndividual.email,
-      subject,
-      body,
-      candidateName: selectedIndividual.name,
-      episodeId: selectedEpisode ? parseInt(selectedEpisode.id) : undefined,
-    });
+    
+    // Remove the subject line from the body
+    const body = emailDraft.replace(/^Subject:.*\n\n?/, "").trim();
+    
+    // Create Gmail compose URL with pre-filled fields
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(selectedIndividual.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    // Open Gmail in a new tab
+    window.open(gmailUrl, '_blank');
+    
+    toast.success("Gmail opened with your draft! Just click Send.");
+    setEmailDraftOpen(false);
   };
 
   const filteredEpisodes = episodes.filter(ep => 
@@ -1820,7 +1815,7 @@ Outreach Context: ${individual.outreachAngle}`;
 
       {/* Email Draft Modal */}
       <Dialog open={emailDraftOpen} onOpenChange={setEmailDraftOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5 text-purple-400" />
@@ -1836,7 +1831,7 @@ Outreach Context: ${individual.outreachAngle}`;
           </DialogHeader>
 
           {selectedIndividual && (
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto">
               {/* Recipient Info */}
               <div className="p-3 rounded bg-green-500/5 border border-green-500/20">
                 <p className="text-sm font-medium mb-2">Sending to:</p>
@@ -1868,55 +1863,42 @@ Outreach Context: ${individual.outreachAngle}`;
                 <Textarea
                   value={emailDraft}
                   onChange={(e) => setEmailDraft(e.target.value)}
-                  className="min-h-[400px] font-mono text-sm"
+                  className="min-h-[250px] font-mono text-sm"
                   placeholder="Email content..."
                 />
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={handleCopyEmail}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  {emailCopied ? (
-                    <Check className="w-4 h-4 mr-2" />
-                  ) : (
-                    <Copy className="w-4 h-4 mr-2" />
-                  )}
-                  {emailCopied ? "Copied!" : "Copy to Clipboard"}
-                </Button>
-                
-                {selectedIndividual.email && (
-                  <>
-                    <Button
-                      onClick={handleOpenMailClient}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Open in Email Client
-                    </Button>
-                    <Button
-                      onClick={handleSendEmail}
-                      disabled={isSendingEmail}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      {isSendingEmail ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Mail className="w-4 h-4 mr-2" />
-                      )}
-                      {isSendingEmail ? "Sending..." : "Send Email"}
-                    </Button>
-                  </>
-                )}
-              </div>
-
               <p className="text-xs text-muted-foreground">
-                Tip: You can edit the email content above before copying or sending. The email is personalized based on the guest's profile and your episode context.
+                Tip: You can edit the email content above before copying or sending.
               </p>
+            </div>
+          )}
+
+          {/* Action Buttons - Fixed at bottom of modal */}
+          {selectedIndividual && (
+            <div className="flex flex-wrap gap-2 pt-4 border-t border-border shrink-0">
+              <Button
+                onClick={handleCopyEmail}
+                variant="outline"
+                className="flex-1"
+              >
+                {emailCopied ? (
+                  <Check className="w-4 h-4 mr-2" />
+                ) : (
+                  <Copy className="w-4 h-4 mr-2" />
+                )}
+                {emailCopied ? "Copied!" : "Copy to Clipboard"}
+              </Button>
+              
+              {selectedIndividual.email && (
+                <Button
+                  onClick={handleSendEmail}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Open in Gmail
+                </Button>
+              )}
             </div>
           )}
         </DialogContent>
