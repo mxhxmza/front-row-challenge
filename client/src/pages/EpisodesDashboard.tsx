@@ -58,6 +58,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import ScrollToTop from "@/components/ScrollToTop";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
+import { trpc } from "@/lib/trpc";
 
 // Singlish dictionary for language processing
 const singlishDictionary: Record<string, { meaning: string; usage: string }> = {
@@ -722,6 +725,7 @@ const saveEpisodes = (episodes: Episode[]) => {
 };
 
 export default function EpisodesDashboard() {
+  const { user, isAuthenticated } = useAuth();
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
   const [isNewEpisodeOpen, setIsNewEpisodeOpen] = useState(false);
@@ -739,6 +743,20 @@ export default function EpisodesDashboard() {
   const [selectedIndividual, setSelectedIndividual] = useState<ContrarianIndividual | null>(null);
   const [emailDraft, setEmailDraft] = useState("");
   const [emailCopied, setEmailCopied] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  // Email sending mutation
+  const sendEmailMutation = trpc.email.send.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setEmailDraftOpen(false);
+      setIsSendingEmail(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to send email: ${error.message}`);
+      setIsSendingEmail(false);
+    },
+  });
 
   // Load episodes on mount
   useEffect(() => {
@@ -917,6 +935,34 @@ Outreach Context: ${individual.outreachAngle}`;
       const body = encodeURIComponent(emailDraft.replace(/^Subject:.*\n\n/, ""));
       window.open(`mailto:${selectedIndividual.email}?subject=${subject}&body=${body}`, "_blank");
     }
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedIndividual?.email) {
+      toast.error("No email address available for this contact");
+      return;
+    }
+
+    if (!isAuthenticated) {
+      toast.error("Please login to send emails");
+      window.location.href = getLoginUrl();
+      return;
+    }
+
+    setIsSendingEmail(true);
+    
+    // Extract subject from email draft
+    const subjectMatch = emailDraft.match(/^Subject:\s*(.+)$/m);
+    const subject = subjectMatch ? subjectMatch[1] : `Invitation to Discuss ${selectedIndividual.expertise} on Front Row Challenge`;
+    const body = emailDraft.replace(/^Subject:.*\n\n/, "");
+
+    sendEmailMutation.mutate({
+      to: selectedIndividual.email,
+      subject,
+      body,
+      candidateName: selectedIndividual.name,
+      episodeId: selectedEpisode ? parseInt(selectedEpisode.id) : undefined,
+    });
   };
 
   const filteredEpisodes = episodes.filter(ep => 
@@ -1896,13 +1942,28 @@ Outreach Context: ${individual.outreachAngle}`;
                 </Button>
                 
                 {selectedIndividual.email && (
-                  <Button
-                    onClick={handleOpenMailClient}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open in Email Client
-                  </Button>
+                  <>
+                    <Button
+                      onClick={handleOpenMailClient}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Open in Email Client
+                    </Button>
+                    <Button
+                      onClick={handleSendEmail}
+                      disabled={isSendingEmail}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      {isSendingEmail ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Mail className="w-4 h-4 mr-2" />
+                      )}
+                      {isSendingEmail ? "Sending..." : "Send Email"}
+                    </Button>
+                  </>
                 )}
               </div>
 

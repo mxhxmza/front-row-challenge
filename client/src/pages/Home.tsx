@@ -5,6 +5,8 @@
 */
 
 import { useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { motion } from "framer-motion";
 import { 
   FileText, 
@@ -18,7 +20,10 @@ import {
   ChevronDown,
   Zap,
   Users,
-  Brain
+  Brain,
+  LogIn,
+  LogOut,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +53,7 @@ const scaleIn = {
 
 export default function Home() {
   const [activeCapability, setActiveCapability] = useState("transcript");
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -66,6 +72,35 @@ export default function Home() {
             <a href="#architecture" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Architecture</a>
             <a href="#innovations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Innovations</a>
             <Link href="/episodes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Episodes Dashboard</Link>
+            
+            {/* Auth buttons */}
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  {user?.name || 'User'}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => logout()}
+                  className="gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => window.location.href = getLoginUrl()}
+                className="gap-2 glow-cyan"
+              >
+                <LogIn className="w-4 h-4" />
+                Login
+              </Button>
+            )}
           </div>
         </div>
       </nav>
