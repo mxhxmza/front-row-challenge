@@ -44,6 +44,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Singlish dictionary for language processing
 const singlishDictionary: Record<string, { meaning: string; usage: string }> = {
@@ -596,6 +597,7 @@ export default function EpisodesDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      <ScrollToTop />
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between">
