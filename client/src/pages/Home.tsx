@@ -608,8 +608,8 @@ export default function Home() {
               {[
                 {
                   icon: FileText,
-                  title: "YouTube Import",
-                  description: "Paste any YouTube URL to automatically extract and analyze podcast transcripts"
+                  title: "Transcript Import",
+                  description: "Paste any Transcript to automatically extract key topics, analyze trends and discover like-minded people"
                 },
                 {
                   icon: MessageSquare,
