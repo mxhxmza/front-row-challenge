@@ -74,6 +74,7 @@ export default function Home() {
             <a href="#capabilities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Capabilities</a>
             <a href="#architecture" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Architecture</a>
             <a href="#innovations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Innovations</a>
+            <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
             <Link href="/episodes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Episodes Dashboard</Link>
             
             {/* Auth buttons */}
@@ -720,11 +721,13 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <FAQ
-        title="Frequently Asked Questions"
-        description="Get answers to common questions about transcript analysis, API costs, and supported languages."
-        items={faqItems}
-      />
+      <section id="faq">
+        <FAQ
+          title="Frequently Asked Questions"
+          description="Get answers to common questions about transcript analysis, API costs, and supported languages."
+          items={faqItems}
+        />
+      </section>
 
       {/* Footer */}
       <footer className="py-12 border-t border-border">
