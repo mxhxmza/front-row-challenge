@@ -111,7 +111,7 @@ export default function Home() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="/images/hero-network.png" 
+            src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663326497615/mdWSOpzsdpeDwOVE.png" 
             alt="" 
             className="w-full h-full object-cover opacity-40"
           />
@@ -149,12 +149,18 @@ export default function Home() {
             </motion.p>
             
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="glow-cyan px-8">
+              <Button 
+                size="lg" 
+                className="glow-cyan px-8"
+                onClick={() => {
+                  const element = document.getElementById('challenge-section');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              >
                 Explore Framework
                 <ChevronDown className="w-4 h-4 ml-2" />
-              </Button>
-              <Button size="lg" variant="outline" className="px-8">
-                View Documentation
               </Button>
             </motion.div>
           </motion.div>
@@ -171,7 +177,7 @@ export default function Home() {
       </section>
 
       {/* Problem Statement */}
-      <section className="py-24 relative">
+      <section id="challenge-section" className="py-24 relative">
         <div className="container">
           <motion.div 
             className="max-w-3xl mx-auto text-center mb-16"
@@ -278,7 +284,7 @@ export default function Home() {
               >
                 <motion.div variants={fadeInUp}>
                   <img 
-                    src="/images/transcript-analysis.png" 
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663326497615/tyZCRCVbkcOtMFes.png" 
                     alt="Transcript Analysis Visualization" 
                     className="rounded-2xl border border-border shadow-2xl"
                   />
@@ -351,7 +357,7 @@ export default function Home() {
                 </motion.div>
                 <motion.div variants={fadeInUp} className="order-1 lg:order-2">
                   <img 
-                    src="/images/viewpoint-discovery.png" 
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663326497615/ZyDHIYGoUxyBEsBV.png" 
                     alt="Viewpoint Discovery Visualization" 
                     className="rounded-2xl border border-border shadow-2xl"
                   />
@@ -368,7 +374,7 @@ export default function Home() {
               >
                 <motion.div variants={fadeInUp}>
                   <img 
-                    src="/images/knowledge-graph.png" 
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663326497615/gjYmNUZQthQzjTjQ.png" 
                     alt="Knowledge Graph Visualization" 
                     className="rounded-2xl border border-border shadow-2xl"
                   />
