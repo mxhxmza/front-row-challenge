@@ -34,6 +34,7 @@ import { Link } from "wouter";
 import ScrollToTop from "@/components/ScrollToTop";
 import FAQ from "@/components/FAQ";
 import { faqItems } from "@/data/faqData";
+import DemoWalkthrough from "@/components/DemoWalkthrough";
 
 // Animation variants
 const fadeInUp = {
@@ -719,6 +720,9 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* Demo Walkthrough */}
+      <DemoWalkthrough />
 
       {/* FAQ Section */}
       <section id="faq">
