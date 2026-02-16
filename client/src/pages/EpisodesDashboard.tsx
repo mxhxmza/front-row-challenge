@@ -1488,26 +1488,7 @@ Outreach Context: ${individual.outreachAngle}`;
                                   {individual.expertise}
                                 </Badge>
 
-                                {/* Contact Information */}
-                                <div className="p-3 rounded bg-green-500/5 border border-green-500/20 mb-3">
-                                  <p className="text-sm font-medium flex items-center gap-2 mb-2">
-                                    <Mail className="w-4 h-4 text-green-400" />
-                                    Contact Information
-                                  </p>
-                                  <div className="flex flex-wrap gap-3 text-sm">
-                                    {individual.email && (
-                                      <a
-                                        href={`mailto:${individual.email}`}
-                                        className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
-                                      >
-                                        <Mail className="w-3 h-3" />
-                                        {individual.email}
-                                      </a>
-                                    )}
 
-                                  </div>
-                                </div>
-                                
                                 <div className="space-y-3">
                                   <div className="p-3 rounded bg-card border border-border">
                                     <p className="text-sm font-medium flex items-center gap-2 mb-1">
