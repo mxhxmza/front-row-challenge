@@ -1584,21 +1584,25 @@ Outreach Context: ${individual.outreachAngle}`;
                                     <p className="text-sm text-primary/80">{individual.outreachAngle}</p>
                                   </div>
                                   
-                                  <div className="flex flex-wrap gap-2">
-                                    {individual.platforms.map((platform, j) => (
-                                      <a
-                                        key={j}
-                                        href={platform.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors"
-                                      >
-                                        <LinkIcon className="w-3 h-3" />
-                                        {platform.name}
-                                        <ExternalLink className="w-3 h-3" />
-                                      </a>
-                                    ))}
-                                  </div>
+                                  {individual.platforms && individual.platforms.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {individual.platforms.map((platform, j) => (
+                                        platform.url && (
+                                          <a
+                                            key={j}
+                                            href={platform.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors"
+                                          >
+                                            <LinkIcon className="w-3 h-3" />
+                                            {platform.name}
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                        )
+                                      ))}
+                                    </div>
+                                  )}
 
                                   {/* Draft Email Button */}
                                   <Button

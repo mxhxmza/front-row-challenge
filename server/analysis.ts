@@ -415,23 +415,40 @@ Return a JSON array of individuals with this structure:
         linkedin?: string;
       }>;
       
-      const individuals: ContrarianIndividual[] = suggestions.map((s, idx) => ({
-        name: s.name,
-        role: s.role,
-        organization: s.organization,
-        expertise: s.expertise,
-        opposingPosition: s.opposingPosition,
-        counterSummary: s.counterSummary,
-        outreachAngle: s.outreachAngle,
-        platforms: [
-          ...(s.twitter ? [{ name: "Twitter", url: `https://twitter.com/${s.twitter.replace("@", "")}` }] : []),
-          ...(s.linkedin ? [{ name: "LinkedIn", url: s.linkedin }] : [])
-        ],
-        score: 0.8 - (idx * 0.05),
-        source: "llm" as const,
-        twitter: s.twitter,
-        linkedin: s.linkedin
-      }));
+      const individuals: ContrarianIndividual[] = suggestions
+        .map((s, idx) => {
+          // Only include social media links if they are valid and not empty strings
+          const platforms = [];
+          
+          // Add Twitter only if it's a valid handle
+          if (s.twitter && s.twitter.trim() && s.twitter !== "N/A" && s.twitter !== "unknown") {
+            const handle = s.twitter.replace("@", "").trim();
+            if (handle.length > 0) {
+              platforms.push({ name: "Twitter", url: `https://twitter.com/${handle}` });
+            }
+          }
+          
+          // Add LinkedIn only if it's a valid URL
+          if (s.linkedin && s.linkedin.trim() && s.linkedin !== "N/A" && s.linkedin !== "unknown" && s.linkedin.includes("linkedin")) {
+            platforms.push({ name: "LinkedIn", url: s.linkedin });
+          }
+          
+          return {
+            name: s.name,
+            role: s.role,
+            organization: s.organization,
+            expertise: s.expertise,
+            opposingPosition: s.opposingPosition,
+            counterSummary: s.counterSummary,
+            outreachAngle: s.outreachAngle,
+            platforms,
+            score: 0.8 - (idx * 0.05),
+            source: "llm" as const,
+            twitter: s.twitter && s.twitter.trim() && s.twitter !== "N/A" && s.twitter !== "unknown" ? s.twitter : undefined,
+            linkedin: s.linkedin && s.linkedin.trim() && s.linkedin !== "N/A" && s.linkedin !== "unknown" && s.linkedin.includes("linkedin") ? s.linkedin : undefined
+          };
+        })
+        .filter(individual => individual.platforms.length > 0 || individual.name.length > 0);
 
       console.log(`[Analysis] LLM suggested ${individuals.length} contrarian individuals`);
       return individuals;
