@@ -32,6 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "wouter";
 import ScrollToTop from "@/components/ScrollToTop";
+import FAQ from "@/components/FAQ";
+import { faqItems } from "@/data/faqData";
 
 // Animation variants
 const fadeInUp = {
@@ -716,6 +718,13 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQ
+        title="Frequently Asked Questions"
+        description="Get answers to common questions about transcript analysis, API costs, and supported languages."
+        items={faqItems}
+      />
 
       {/* Footer */}
       <footer className="py-12 border-t border-border">
