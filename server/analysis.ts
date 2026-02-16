@@ -36,13 +36,9 @@ export interface ContrarianIndividual {
   opposingPosition: string;
   counterSummary: string;
   outreachAngle: string;
-  platforms: { name: string; url: string }[];
   score: number;
   source: "linkedin" | "youtube" | "twitter" | "llm";
-  profileUrl?: string;
   email?: string;
-  twitter?: string;
-  linkedin?: string;
 }
 
 export interface AnalysisResult {
@@ -312,10 +308,8 @@ async function searchYouTube(topic: ExtractedTopic): Promise<ContrarianIndividua
           opposingPosition: topic.contrarian_angle,
           counterSummary: `Creates content about ${topic.name} with potentially different perspectives.`,
           outreachAngle: `Reach out for podcast collaboration on ${topic.name}.`,
-          platforms: [{ name: "YouTube", url: `https://youtube.com/channel/${channelId}` }],
           score: 0.65,
-          source: "youtube" as const,
-          profileUrl: `https://youtube.com/channel/${channelId}`
+          source: "youtube" as const
         });
       }
     }

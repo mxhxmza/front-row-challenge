@@ -206,11 +206,8 @@ interface ContrarianIndividual {
   opposingPosition: string;
   counterSummary: string;
   outreachAngle: string;
-  platforms: { name: string; url: string }[];
   score: number;
   email?: string;
-  twitter?: string;
-  linkedin?: string;
 }
 
 interface ExtractionResult {
@@ -394,14 +391,8 @@ const extractArguments = (text: string): ExtractionResult => {
         opposingPosition: "AGI is decades away, not years. Current LLMs lack true understanding.",
         counterSummary: "Marcus has consistently argued that deep learning alone cannot achieve AGI. His 2022 paper 'Deep Learning Is Hitting a Wall' directly contradicts claims of imminent AGI.",
         outreachAngle: "This guest has argued the opposite of 'AGI within a decade' on multiple platforms including his Substack and The New York Times.",
-        platforms: [
-          { name: "Substack", url: "https://garymarcus.substack.com" },
-          { name: "Twitter/X", url: "https://twitter.com/GaryMarcus" }
-        ],
         score: -0.85,
-        email: "gary.marcus@nyu.edu",
-        twitter: "@GaryMarcus",
-        linkedin: "garymarcus"
+        email: "gary.marcus@nyu.edu"
       },
       {
         name: "Emily Bender",
@@ -411,14 +402,8 @@ const extractArguments = (text: string): ExtractionResult => {
         opposingPosition: "LLMs are 'stochastic parrots' without genuine understanding.",
         counterSummary: "Co-author of the influential 'Stochastic Parrots' paper. Argues that scaling alone won't lead to intelligence and raises concerns about AI hype.",
         outreachAngle: "Has publicly debated AI capabilities on podcasts and academic forums, offering a linguistics perspective on why current AI claims are overstated.",
-        platforms: [
-          { name: "Mastodon", url: "https://dair-community.social/@emilymbender" },
-          { name: "University Page", url: "https://faculty.washington.edu/ebender/" }
-        ],
         score: -0.78,
-        email: "ebender@uw.edu",
-        twitter: "@emilymbender",
-        linkedin: "emily-bender"
+        email: "ebender@uw.edu"
       }
     );
   }
@@ -433,13 +418,8 @@ const extractArguments = (text: string): ExtractionResult => {
         opposingPosition: "Traditional institutions can out-innovate startups with proper digital transformation.",
         counterSummary: "Led DBS to become 'World's Best Digital Bank'. Argues that incumbents with resources and customer trust can beat fintech startups.",
         outreachAngle: "This guest has demonstrated that established banks can innovate faster than startups, directly countering 'disruption is inevitable' narratives.",
-        platforms: [
-          { name: "LinkedIn", url: "https://linkedin.com/in/piyushgupta" },
-          { name: "DBS Insights", url: "https://www.dbs.com/insights" }
-        ],
         score: -0.72,
-        email: "piyush.gupta@dbs.com",
-        linkedin: "piyushgupta"
+        email: "piyush.gupta@dbs.com"
       },
       {
         name: "Ho Kwon Ping",
@@ -449,13 +429,8 @@ const extractArguments = (text: string): ExtractionResult => {
         opposingPosition: "Sustainable growth beats hypergrowth. Singapore startups should focus on profitability.",
         counterSummary: "Built Banyan Tree into a global brand without VC funding. Advocates for patient capital and sustainable business models over 'blitzscaling'.",
         outreachAngle: "Has spoken at multiple Singapore forums arguing against the Silicon Valley playbook, suggesting regional startups need different strategies.",
-        platforms: [
-          { name: "LinkedIn", url: "https://linkedin.com/in/hokwonping" },
-          { name: "SMU Speaker", url: "https://www.smu.edu.sg" }
-        ],
         score: -0.65,
-        email: "media@banyantree.com",
-        linkedin: "hokwonping"
+        email: "media@banyantree.com"
       }
     );
   }
@@ -470,14 +445,8 @@ const extractArguments = (text: string): ExtractionResult => {
         opposingPosition: "Hybrid work is optimal; fully remote reduces innovation and mentorship.",
         counterSummary: "His research shows remote work boosts productivity but reduces innovation. Advocates for structured hybrid models, not full remote.",
         outreachAngle: "Has data-driven counterarguments to both 'fully remote' and 'return to office' extremes, offering nuanced middle-ground perspectives.",
-        platforms: [
-          { name: "Stanford Profile", url: "https://nbloom.people.stanford.edu" },
-          { name: "Twitter/X", url: "https://twitter.com/I_Am_NickBloom" }
-        ],
         score: -0.58,
-        email: "nbloom@stanford.edu",
-        twitter: "@I_Am_NickBloom",
-        linkedin: "nicholas-bloom"
+        email: "nbloom@stanford.edu"
       }
     );
   }
@@ -1535,28 +1504,7 @@ Outreach Context: ${individual.outreachAngle}`;
                                         {individual.email}
                                       </a>
                                     )}
-                                    {individual.twitter && (
-                                      <a
-                                        href={`https://twitter.com/${individual.twitter.replace('@', '')}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
-                                      >
-                                        <Twitter className="w-3 h-3" />
-                                        {individual.twitter}
-                                      </a>
-                                    )}
-                                    {individual.linkedin && (
-                                      <a
-                                        href={`https://linkedin.com/in/${individual.linkedin}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-blue-500 hover:text-blue-400 transition-colors"
-                                      >
-                                        <Linkedin className="w-3 h-3" />
-                                        LinkedIn
-                                      </a>
-                                    )}
+
                                   </div>
                                 </div>
                                 
@@ -1583,26 +1531,7 @@ Outreach Context: ${individual.outreachAngle}`;
                                     </p>
                                     <p className="text-sm text-primary/80">{individual.outreachAngle}</p>
                                   </div>
-                                  
-                                  {individual.platforms && individual.platforms.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                      {individual.platforms.map((platform, j) => (
-                                        platform.url && (
-                                          <a
-                                            key={j}
-                                            href={platform.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors"
-                                          >
-                                            <LinkIcon className="w-3 h-3" />
-                                            {platform.name}
-                                            <ExternalLink className="w-3 h-3" />
-                                          </a>
-                                        )
-                                      ))}
-                                    </div>
-                                  )}
+
 
                                   {/* Draft Email Button */}
                                   <Button
@@ -1841,18 +1770,7 @@ Outreach Context: ${individual.outreachAngle}`;
                       {selectedIndividual.email}
                     </span>
                   )}
-                  {selectedIndividual.twitter && (
-                    <span className="flex items-center gap-1 text-blue-400">
-                      <Twitter className="w-3 h-3" />
-                      {selectedIndividual.twitter}
-                    </span>
-                  )}
-                  {selectedIndividual.linkedin && (
-                    <span className="flex items-center gap-1 text-blue-500">
-                      <Linkedin className="w-3 h-3" />
-                      linkedin.com/in/{selectedIndividual.linkedin}
-                    </span>
-                  )}
+
                 </div>
               </div>
 
