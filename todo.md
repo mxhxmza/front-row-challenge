@@ -27,3 +27,4 @@
 - [x] Update UI to display argument sources and references
 - [x] Test similar-minded individuals discovery with different transcripts
 - [x] Test argument source citations accuracy
+- [x] Fix similar-minded individuals display in extractArguments function

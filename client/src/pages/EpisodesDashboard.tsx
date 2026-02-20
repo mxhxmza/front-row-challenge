@@ -546,6 +546,99 @@ const extractArguments = (text: string): ExtractionResult => {
   }
 
   // Generate opposing content
+
+  // Generate similar-minded individuals
+  const similarIndividuals: SimilarIndividual[] = [];
+  
+  if (hasAI) {
+    similarIndividuals.push(
+      {
+        name: "Demis Hassabis",
+        role: "CEO & Co-founder",
+        organization: "Google DeepMind",
+        expertise: "Artificial Intelligence & Neuroscience",
+        alignedPosition: "AI advancement is accelerating and will transform society positively.",
+        supportSummary: "Leading researcher who believes AI capabilities are advancing rapidly. Published breakthrough work on AlphaGo, AlphaFold, and multimodal AI systems.",
+        outreachAngle: "Can discuss the latest breakthroughs in AI and the potential for AGI development within coming decades.",
+        score: 0.88
+      },
+      {
+        name: "Yann LeCun",
+        role: "Chief AI Scientist",
+        organization: "Meta",
+        expertise: "Deep Learning & AI Architecture",
+        alignedPosition: "AI progress is fundamental and will continue to accelerate with better architectures.",
+        supportSummary: "Pioneer of deep learning and convolutional neural networks. Believes AI systems are becoming more capable and autonomous.",
+        outreachAngle: "Can discuss the technical foundations of modern AI and why progress will continue accelerating.",
+        score: 0.82
+      }
+    );
+  }
+  
+  if (hasStartup) {
+    similarIndividuals.push(
+      {
+        name: "Reid Hoffman",
+        role: "Co-founder",
+        organization: "LinkedIn",
+        expertise: "Entrepreneurship & Startup Strategy",
+        alignedPosition: "Startups are the engine of innovation and economic growth.",
+        supportSummary: "Built LinkedIn into a global platform. Advocates for startup culture and believes in the power of entrepreneurship to drive change.",
+        outreachAngle: "Can discuss startup strategy, scaling, and why startup ecosystems are crucial for innovation.",
+        score: 0.85
+      },
+      {
+        name: "Paul Graham",
+        role: "Founder",
+        organization: "Y Combinator",
+        expertise: "Startup Investing & Mentorship",
+        alignedPosition: "Startup founders are the best source of innovation and should be supported.",
+        supportSummary: "Created Y Combinator, one of the world's most successful startup accelerators. Believes in founder-driven innovation.",
+        outreachAngle: "Can discuss startup culture, the importance of founder support, and how to identify promising ventures.",
+        score: 0.83
+      }
+    );
+  }
+  
+  if (hasWork) {
+    similarIndividuals.push(
+      {
+        name: "Satya Nadella",
+        role: "CEO",
+        organization: "Microsoft",
+        expertise: "Technology & Workforce Transformation",
+        alignedPosition: "Technology creates new opportunities and jobs while requiring workforce adaptation.",
+        supportSummary: "Led Microsoft's transformation into an AI-first company. Believes technology and human skills together create new economic value.",
+        outreachAngle: "Can discuss how technology is creating new job categories and the importance of upskilling.",
+        score: 0.80
+      }
+    );
+  }
+  
+  if (hasSingapore) {
+    similarIndividuals.push(
+      {
+        name: "Ravi Menon",
+        role: "Managing Director",
+        organization: "Monetary Authority of Singapore",
+        expertise: "Financial Innovation & Fintech",
+        alignedPosition: "Singapore can become a global fintech hub through strategic innovation.",
+        supportSummary: "Leading Singapore's fintech strategy and digital currency initiatives. Believes in Singapore's potential as a tech innovation hub.",
+        outreachAngle: "Can discuss Singapore's fintech ecosystem, regulatory innovation, and regional tech leadership.",
+        score: 0.84
+      },
+      {
+        name: "Khailee Ng",
+        role: "Co-founder",
+        organization: "500 Global",
+        expertise: "Venture Capital & Southeast Asia",
+        alignedPosition: "Southeast Asia is an emerging hub for innovation and startup success.",
+        supportSummary: "Built 500 Global into a leading venture fund in Southeast Asia. Believes in the region's entrepreneurial potential.",
+        outreachAngle: "Can discuss Southeast Asia's startup ecosystem and why the region is attracting global attention.",
+        score: 0.81
+      }
+    );
+  }
   const opposingContent: OpposingContent[] = [];
   
   if (hasAI) {
@@ -681,6 +774,7 @@ const extractArguments = (text: string): ExtractionResult => {
     singlishAnalysis: singlishAnalysis.termsFound.length > 0 ? singlishAnalysis : undefined,
     suggestedTrendingTopics: suggestedTrendingTopics.length > 0 ? suggestedTrendingTopics : trendingSGTopics.slice(0, 3),
     contrarianIndividuals: contrarianIndividuals.slice(0, 4),
+    similarIndividuals: similarIndividuals.slice(0, 4),
     opposingContent: opposingContent.slice(0, 4),
     factChecks: factChecks.slice(0, 4)
   };
