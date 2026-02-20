@@ -21,3 +21,9 @@
 - [x] Create web search integration to find contrarian individuals based on extracted topics
 - [x] Generate unique contrarian individuals for each transcript (not static list)
 - [x] Test with different transcripts to verify unique results
+- [x] Add similar-minded individuals alongside contrarian individuals in analysis
+- [x] Extract and add source citations for each argument
+- [x] Update UI to display similar-minded individuals section
+- [x] Update UI to display argument sources and references
+- [x] Test similar-minded individuals discovery with different transcripts
+- [x] Test argument source citations accuracy

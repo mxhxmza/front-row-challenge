@@ -7,8 +7,18 @@
 
 import { invokeLLM } from "./_core/llm";
 import { callDataApi } from "./_core/dataApi";
+import { findSimilarIndividuals } from "./similar-individuals";
+import { extractArgumentSources } from "./argument-sources";
 
 // Types for extracted data
+export interface ArgumentSource {
+  title: string;
+  url: string;
+  author?: string;
+  date?: string;
+  relevance: number;
+}
+
 export interface ExtractedArgument {
   id: string;
   speaker: string;
@@ -19,6 +29,7 @@ export interface ExtractedArgument {
   premises: string[];
   contrarian_potential: number;
   singlishTerms?: string[];
+  sources?: ArgumentSource[];
 }
 
 export interface ExtractedTopic {
@@ -26,6 +37,18 @@ export interface ExtractedTopic {
   description: string;
   searchQuery: string;
   contrarian_angle: string;
+}
+
+export interface SimilarIndividual {
+  name: string;
+  role: string;
+  organization: string;
+  expertise: string;
+  alignedPosition: string;
+  supportSummary: string;
+  outreachAngle: string;
+  score: number;
+  source: "linkedin" | "youtube" | "twitter" | "llm";
 }
 
 export interface ContrarianIndividual {
@@ -46,6 +69,7 @@ export interface AnalysisResult {
   topics: ExtractedTopic[];
   sentiment: { positive: number; neutral: number; negative: number };
   contrarianIndividuals: ContrarianIndividual[];
+  similarIndividuals: SimilarIndividual[];
   singlishTerms: string[];
   localRelevance: number;
 }
@@ -475,6 +499,9 @@ export async function analyzeTranscript(transcript: string): Promise<AnalysisRes
     )
   }));
   
+  // Extract sources and references for arguments
+  const argumentsWithSources = await extractArgumentSources(argumentsWithSinglish, transcript);
+  
   // Search for contrarian individuals from multiple sources
   const allIndividuals: ContrarianIndividual[] = [];
   
@@ -498,13 +525,17 @@ export async function analyzeTranscript(transcript: string): Promise<AnalysisRes
     new Map(allIndividuals.map(i => [i.name.toLowerCase(), i])).values()
   ).sort((a, b) => b.score - a.score).slice(0, 8);
   
-  console.log(`[Analysis] Final result: ${argumentsWithSinglish.length} arguments, ${topics.length} topics, ${uniqueIndividuals.length} contrarian individuals`);
+  // Search for similar-minded individuals
+  const similarIndividuals = await findSimilarIndividuals(topics, transcript);
+  
+  console.log(`[Analysis] Final result: ${argumentsWithSinglish.length} arguments, ${topics.length} topics, ${uniqueIndividuals.length} contrarian individuals, ${similarIndividuals.length} similar individuals`);
   
   return {
-    arguments: argumentsWithSinglish,
+    arguments: argumentsWithSources,
     topics,
     sentiment,
     contrarianIndividuals: uniqueIndividuals,
+    similarIndividuals,
     singlishTerms: singlish.terms,
     localRelevance: singlish.relevance
   };

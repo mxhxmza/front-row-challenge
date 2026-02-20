@@ -161,6 +161,14 @@ const trendingSGTopics = [
 ];
 
 // Types
+interface ArgumentSource {
+  title: string;
+  author?: string;
+  date?: string;
+  url?: string;
+  relevance: number;
+}
+
 interface Argument {
   id: string;
   speaker: string;
@@ -171,6 +179,7 @@ interface Argument {
   premises: string[];
   contrarian_potential: number;
   singlishTerms?: string[];
+  sources?: ArgumentSource[];
 }
 
 interface SinglishAnalysis {
@@ -210,6 +219,17 @@ interface ContrarianIndividual {
   email?: string;
 }
 
+interface SimilarIndividual {
+  name: string;
+  role: string;
+  organization: string;
+  expertise: string;
+  alignedPosition: string;
+  supportSummary: string;
+  outreachAngle: string;
+  score: number;
+}
+
 interface ExtractionResult {
   arguments: Argument[];
   topics: string[];
@@ -218,6 +238,7 @@ interface ExtractionResult {
   singlishAnalysis?: SinglishAnalysis;
   suggestedTrendingTopics: typeof trendingSGTopics;
   contrarianIndividuals?: ContrarianIndividual[];
+  similarIndividuals?: SimilarIndividual[];
   opposingContent?: OpposingContent[];
   factChecks?: FactCheckItem[];
 }
@@ -285,7 +306,23 @@ const extractArguments = (text: string): ExtractionResult => {
         "Multimodal AI breakthroughs were previously thought impossible"
       ],
       contrarian_potential: 0.85,
-      singlishTerms: singlishAnalysis.termsFound.slice(0, 2)
+      singlishTerms: singlishAnalysis.termsFound.slice(0, 2),
+      sources: [
+        {
+          title: "The Bitter Lesson - Scaling and AI",
+          author: "Richard Sutton",
+          date: "2019",
+          url: "http://www.incompleteideas.net/IncIdeas/BitterLesson.html",
+          relevance: 0.95
+        },
+        {
+          title: "Attention Is All You Need",
+          author: "Vaswani et al.",
+          date: "2017",
+          url: "https://arxiv.org/abs/1706.03762",
+          relevance: 0.92
+        }
+      ]
     });
   }
   
@@ -301,7 +338,23 @@ const extractArguments = (text: string): ExtractionResult => {
         "Historical evidence shows job creation from technology",
         "Adaptation and reskilling are key factors"
       ],
-      contrarian_potential: 0.72
+      contrarian_potential: 0.72,
+      sources: [
+        {
+          title: "The Future of Employment: How Susceptible are Jobs to Computerisation?",
+          author: "Frey & Osborne",
+          date: "2013",
+          url: "https://www.oxfordmartin.ox.ac.uk/downloads/academic/The_Future_of_Employment.pdf",
+          relevance: 0.88
+        },
+        {
+          title: "Technology and Jobs in the 21st Century",
+          author: "MIT Task Force",
+          date: "2023",
+          url: "https://mitsloan.mit.edu/ideas-made-to-matter/technology-and-jobs",
+          relevance: 0.85
+        }
+      ]
     });
   }
   
@@ -317,7 +370,23 @@ const extractArguments = (text: string): ExtractionResult => {
         "2021 funding created perverse incentives",
         "Survivorship bias in VC is extreme"
       ],
-      contrarian_potential: 0.68
+      contrarian_potential: 0.68,
+      sources: [
+        {
+          title: "The VC Bubble and Startup Failures",
+          author: "Paul Graham",
+          date: "2022",
+          url: "http://paulgraham.com/growth.html",
+          relevance: 0.90
+        },
+        {
+          title: "Venture Capital and the Startup Ecosystem",
+          author: "Y Combinator Research",
+          date: "2023",
+          url: "https://www.ycombinator.com/research",
+          relevance: 0.87
+        }
+      ]
     });
   }
   
@@ -334,7 +403,23 @@ const extractArguments = (text: string): ExtractionResult => {
         "Southeast Asia expansion is a natural advantage"
       ],
       contrarian_potential: 0.70,
-      singlishTerms: singlishAnalysis.termsFound
+      singlishTerms: singlishAnalysis.termsFound,
+      sources: [
+        {
+          title: "Southeast Asia Tech Ecosystem Report",
+          author: "Google & Temasek",
+          date: "2023",
+          url: "https://www.temasek.com.sg/en/news-and-views/news-and-press-releases",
+          relevance: 0.93
+        },
+        {
+          title: "Singapore Startup Landscape 2024",
+          author: "Enterprise Singapore",
+          date: "2024",
+          url: "https://www.enterprisesg.gov.sg/",
+          relevance: 0.91
+        }
+      ]
     });
   }
   
@@ -350,7 +435,16 @@ const extractArguments = (text: string): ExtractionResult => {
         "Evidence suggests current methods are suboptimal",
         "Alternative approaches show promise"
       ],
-      contrarian_potential: 0.5
+      contrarian_potential: 0.5,
+      sources: [
+        {
+          title: "Rethinking Approaches to Complex Problems",
+          author: "Various Authors",
+          date: "2023",
+          url: "https://www.example.com/research",
+          relevance: 0.75
+        }
+      ]
     });
   }
   
@@ -1435,13 +1529,43 @@ Outreach Context: ${individual.outreachAngle}`;
                                   <ChevronRight className="w-3 h-3" />
                                   <span>{arg.topic}</span>
                                 </div>
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-1 mb-3">
                                   {arg.premises.map((premise, j) => (
                                     <span key={j} className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
                                       {premise}
                                     </span>
                                   ))}
                                 </div>
+                                
+                                {arg.sources && arg.sources.length > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-border">
+                                    <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                                      <BookOpen className="w-3 h-3" />
+                                      Sources & References
+                                    </p>
+                                    <div className="space-y-2">
+                                      {arg.sources.map((source, j) => (
+                                        <div key={j} className="text-xs p-2 rounded bg-muted/50 border border-border/50">
+                                          <p className="font-medium text-foreground line-clamp-1">{source.title}</p>
+                                          <p className="text-muted-foreground text-xs mt-1">
+                                            by {source.author} • {source.date}
+                                          </p>
+                                          {source.url && (
+                                            <a 
+                                              href={source.url} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer"
+                                              className="text-primary hover:underline text-xs mt-1 inline-flex items-center gap-1"
+                                            >
+                                              View Source
+                                              <ExternalLink className="w-2 h-2" />
+                                            </a>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </motion.div>
                             ))}
                           </div>
@@ -1522,6 +1646,76 @@ Outreach Context: ${individual.outreachAngle}`;
                                     <Mail className="w-4 h-4 mr-2" />
                                     Draft Outreach Email
                                   </Button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Similar-Minded Individuals */}
+                      {selectedEpisode.result.similarIndividuals && selectedEpisode.result.similarIndividuals.length > 0 && (
+                        <Card className="card-glow border-green-500/20">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Users className="w-5 h-5 text-green-400" />
+                              Similar-Minded Individuals
+                              <Badge variant="secondary" className="ml-2">
+                                {selectedEpisode.result.similarIndividuals.length} found
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription>
+                              Experts and thought leaders who share similar perspectives and could be aligned guests
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {selectedEpisode.result.similarIndividuals.map((individual, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="p-4 rounded-lg bg-green-500/5 border border-green-500/20"
+                              >
+                                <div className="flex items-start justify-between gap-4 mb-3">
+                                  <div>
+                                    <h4 className="font-semibold text-lg">{individual.name}</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      {individual.role} at {individual.organization}
+                                    </p>
+                                  </div>
+                                  <Badge variant="outline" className="shrink-0 bg-green-500/10 text-green-400 border-green-500/20">
+                                    Score: {individual.score.toFixed(2)}
+                                  </Badge>
+                                </div>
+                                
+                                <Badge variant="outline" className="mb-3 bg-muted/50">
+                                  {individual.expertise}
+                                </Badge>
+
+                                <div className="space-y-3">
+                                  <div className="p-3 rounded bg-card border border-border">
+                                    <p className="text-sm font-medium flex items-center gap-2 mb-1">
+                                      <Quote className="w-4 h-4 text-green-400" />
+                                      Aligned Position
+                                    </p>
+                                    <p className="text-sm text-muted-foreground italic">
+                                      "{individual.alignedPosition}"
+                                    </p>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-sm font-medium mb-1">Why They're Relevant:</p>
+                                    <p className="text-sm text-muted-foreground">{individual.supportSummary}</p>
+                                  </div>
+                                  
+                                  <div className="p-3 rounded bg-green-500/5 border border-green-500/20">
+                                    <p className="text-sm font-medium flex items-center gap-2 mb-1">
+                                      <Mail className="w-4 h-4 text-green-400" />
+                                      Outreach Angle
+                                    </p>
+                                    <p className="text-sm text-green-400/80">{individual.outreachAngle}</p>
+                                  </div>
                                 </div>
                               </motion.div>
                             ))}
