@@ -30,3 +30,7 @@
 - [x] Fix similar-minded individuals display in extractArguments function
 - [x] Fix similarIndividuals field in server error handler response
 - [x] Verify similar-minded individuals display in new episodes
+- [x] Make Sources & References section interactive with clickable links
+- [x] Add link validation and error handling for source URLs
+- [x] Test interactive links with different source types
+- [x] Fix argument-sources.ts matching logic for better source mapping

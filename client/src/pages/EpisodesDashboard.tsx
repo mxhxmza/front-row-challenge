@@ -1633,29 +1633,39 @@ Outreach Context: ${individual.outreachAngle}`;
                                 </div>
                                 
                                 {arg.sources && arg.sources.length > 0 && (
-                                  <div className="mt-3 pt-3 border-t border-border">
-                                    <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                                      <BookOpen className="w-3 h-3" />
+                                  <div className="mt-4 pt-4 border-t border-border">
+                                    <p className="text-xs font-semibold text-foreground mb-3 flex items-center gap-2">
+                                      <BookOpen className="w-4 h-4 text-cyan-400" />
                                       Sources & References
+                                      <Badge variant="outline" className="text-xs ml-auto bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
+                                        {arg.sources.length} source{arg.sources.length !== 1 ? 's' : ''}
+                                      </Badge>
                                     </p>
                                     <div className="space-y-2">
                                       {arg.sources.map((source, j) => (
-                                        <div key={j} className="text-xs p-2 rounded bg-muted/50 border border-border/50">
-                                          <p className="font-medium text-foreground line-clamp-1">{source.title}</p>
-                                          <p className="text-muted-foreground text-xs mt-1">
-                                            by {source.author} • {source.date}
-                                          </p>
-                                          {source.url && (
-                                            <a 
-                                              href={source.url} 
-                                              target="_blank" 
-                                              rel="noopener noreferrer"
-                                              className="text-primary hover:underline text-xs mt-1 inline-flex items-center gap-1"
-                                            >
-                                              View Source
-                                              <ExternalLink className="w-2 h-2" />
-                                            </a>
-                                          )}
+                                        <div key={j} className="group text-xs p-3 rounded-lg bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border border-cyan-500/20 hover:border-cyan-500/40 transition-all hover:shadow-md">
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div className="flex-1 min-w-0">
+                                              <p className="font-semibold text-foreground line-clamp-2 group-hover:text-cyan-400 transition-colors">
+                                                {source.title}
+                                              </p>
+                                              <p className="text-muted-foreground text-xs mt-1.5">
+                                                {source.author && <>by <span className="text-foreground/70">{source.author}</span> • </> }
+                                                {source.date}
+                                              </p>
+                                            </div>
+                                            {source.url && (
+                                              <a 
+                                                href={source.url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                title={source.url}
+                                                className="shrink-0 p-1.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 transition-all duration-200 group-hover:scale-110"
+                                              >
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                              </a>
+                                            )}
+                                          </div>
                                         </div>
                                       ))}
                                     </div>

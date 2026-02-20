@@ -14,7 +14,7 @@ export async function extractArgumentSources(
 
   const argumentSummary = extractedArgs
     .slice(0, 5) // Focus on top 5 arguments
-    .map((arg, idx) => `${idx + 1}. "${arg.claim}" (by ${arg.speaker})`)
+    .map((arg, idx) => `${idx + 1}. [${arg.id}] "${arg.claim}" (by ${arg.speaker})`)
     .join("\n");
 
   const systemPrompt = `You are an expert researcher who identifies sources and references for podcast arguments.
@@ -40,6 +40,7 @@ Return a JSON object with this structure:
   "sources": [
     {
       "argumentId": "arg-001",
+      "argumentClaim": "The specific claim made",
       "sources": [
         {
           "title": "Source Title",
@@ -73,6 +74,7 @@ Return a JSON object with this structure:
                   type: "object",
                   properties: {
                     argumentId: { type: "string" },
+                    argumentClaim: { type: "string" },
                     sources: {
                       type: "array",
                       items: {
@@ -89,7 +91,7 @@ Return a JSON object with this structure:
                       }
                     }
                   },
-                  required: ["argumentId", "sources"],
+                  required: ["argumentId", "argumentClaim", "sources"],
                   additionalProperties: false
                 }
               }
@@ -106,14 +108,29 @@ Return a JSON object with this structure:
       const result = JSON.parse(content) as {
         sources: Array<{
           argumentId: string;
+          argumentClaim?: string;
           sources: ArgumentSource[];
         }>;
       };
 
-      // Map sources back to arguments
-      const sourceMap = new Map(
-        result.sources.map((s) => [s.argumentId, s.sources])
-      );
+      // Map sources back to arguments by ID and claim text
+      const sourceMap = new Map<string, ArgumentSource[]>();
+      
+      for (const sourceEntry of result.sources) {
+        const matchingArg = extractedArgs.find(a => a.id === sourceEntry.argumentId);
+        if (matchingArg) {
+          sourceMap.set(matchingArg.id, sourceEntry.sources);
+        } else if (sourceEntry.argumentClaim) {
+          const claimText = sourceEntry.argumentClaim;
+          const claimMatch = extractedArgs.find(a => 
+            a.claim.toLowerCase().includes(claimText.substring(0, 30).toLowerCase()) ||
+            claimText.toLowerCase().includes(a.claim.substring(0, 30).toLowerCase())
+          );
+          if (claimMatch) {
+            sourceMap.set(claimMatch.id, sourceEntry.sources);
+          }
+        }
+      }
 
       const argumentsWithSources = extractedArgs.map((arg) => ({
         ...arg,
