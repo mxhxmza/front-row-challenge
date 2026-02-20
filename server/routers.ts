@@ -114,6 +114,7 @@ export const appRouter = router({
             topics: [],
             sentiment: { positive: 0.33, neutral: 0.34, negative: 0.33 },
             contrarianIndividuals: [],
+            similarIndividuals: [],
             singlishTerms: [],
             localRelevance: 0
           };

@@ -1003,6 +1003,7 @@ export default function EpisodesDashboard() {
           } : undefined,
           suggestedTrendingTopics: [],
           contrarianIndividuals: result.contrarianIndividuals || [],
+          similarIndividuals: result.similarIndividuals || [],
           opposingContent: [],
           factChecks: []
         };

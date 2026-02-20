@@ -28,3 +28,5 @@
 - [x] Test similar-minded individuals discovery with different transcripts
 - [x] Test argument source citations accuracy
 - [x] Fix similar-minded individuals display in extractArguments function
+- [x] Fix similarIndividuals field in server error handler response
+- [x] Verify similar-minded individuals display in new episodes
