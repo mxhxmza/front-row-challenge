@@ -1111,6 +1111,42 @@ Outreach Context: ${individual.outreachAngle}`;
     return emailTemplate;
   };
 
+  const generateSimilarIndividualEmailDraft = (individual: SimilarIndividual) => {
+    const podcastName = "Front Row Challenge";
+    const hostName = "Keith Yap";
+    const episodeContext = selectedEpisode?.title || "our recent episode";
+    
+    const emailTemplate = `Subject: Collaboration Opportunity: ${individual.expertise} Discussion on ${podcastName}
+
+Dear ${individual.name.split(" ").pop()},
+
+I hope this email finds you well. My name is ${hostName}, and I'm the host of ${podcastName}, a podcast dedicated to exploring diverse perspectives on technology, business, and innovation.
+
+I've been impressed by your work on ${individual.expertise.toLowerCase()}, particularly your perspective that "${individual.alignedPosition}" Your insights align beautifully with the themes we've been exploring.
+
+In ${episodeContext}, we discussed several key ideas that I believe would be enriched by your expertise. ${individual.supportSummary}
+
+I would love to have you as a guest on our podcast to:
+• Share your insights and experience on ${individual.expertise.toLowerCase()}
+• Explore the opportunities and challenges in this space
+• Contribute to a thoughtful conversation with our audience
+
+Our podcast format is conversational and collaborative - we bring together thought leaders who share a commitment to substantive discussion. Episodes typically run 45-60 minutes and can be recorded remotely at your convenience.
+
+Would you be interested in joining us for a conversation? I'm happy to work around your schedule and discuss the specifics of what we have in mind.
+
+Thank you for considering this opportunity. I believe our audiences would greatly benefit from your perspective.
+
+Best regards,
+${hostName}
+Host, ${podcastName}
+
+---
+Outreach Strategy: ${individual.outreachAngle}`;
+    
+    return emailTemplate;
+  };
+
   const handleDraftEmail = (individual: ContrarianIndividual) => {
     setSelectedIndividual(individual);
     setEmailDraft(generateEmailDraft(individual));
@@ -1821,6 +1857,20 @@ Outreach Context: ${individual.outreachAngle}`;
                                     </p>
                                     <p className="text-sm text-green-400/80">{individual.outreachAngle}</p>
                                   </div>
+                                  
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full mt-2 border-green-500/30 hover:bg-green-500/10 text-green-400"
+                                    onClick={() => {
+                                      setSelectedIndividual(individual as any);
+                                      setEmailDraft(generateSimilarIndividualEmailDraft(individual));
+                                      setEmailDraftOpen(true);
+                                    }}
+                                  >
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    Draft Outreach Email
+                                  </Button>
                                 </div>
                               </motion.div>
                             ))}

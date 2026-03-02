@@ -34,3 +34,6 @@
 - [x] Add link validation and error handling for source URLs
 - [x] Test interactive links with different source types
 - [x] Fix argument-sources.ts matching logic for better source mapping
+- [x] Create email template generation function for similar-minded individuals
+- [x] Add email draft modal for similar-minded individuals
+- [x] Test email draft generation for similar-minded individuals
