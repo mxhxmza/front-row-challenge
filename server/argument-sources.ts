@@ -1,6 +1,34 @@
 import { invokeLLM } from "./_core/llm";
 import { ArgumentSource, ExtractedArgument } from "./analysis";
 
+// Validate and clean URLs
+function validateAndCleanUrl(url: string): string | null {
+  try {
+    // Remove any trailing characters that might have been added
+    let cleanUrl = url.trim();
+    
+    // Check if URL starts with http or https
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
+      cleanUrl = "https://" + cleanUrl;
+    }
+    
+    // Try to parse the URL to validate it
+    const urlObj = new URL(cleanUrl);
+    
+    // Check for common issues
+    if (cleanUrl.includes("...") || cleanUrl.endsWith("...")) {
+      console.warn(`[Analysis] URL appears truncated: ${cleanUrl}`);
+      return null;
+    }
+    
+    // Return the valid URL
+    return cleanUrl;
+  } catch (error) {
+    console.warn(`[Analysis] Invalid URL: ${url}`);
+    return null;
+  }
+}
+
 // Extract sources and references for arguments
 export async function extractArgumentSources(
   extractedArgs: ExtractedArgument[],
@@ -25,7 +53,8 @@ For each argument, provide:
 3. Books or reports
 4. Expert opinions or interviews
 
-Focus on real, verifiable sources that can be found online.`;
+IMPORTANT: Only provide complete, valid URLs that are accessible. Do not truncate URLs or use placeholder URLs.
+Ensure all URLs are fully formed and can be accessed directly.`;
 
   const userPrompt = `Based on these key arguments from a podcast transcript, suggest sources and references:
 
@@ -44,7 +73,7 @@ Return a JSON object with this structure:
       "sources": [
         {
           "title": "Source Title",
-          "url": "https://example.com",
+          "url": "https://example.com/full-complete-url",
           "author": "Author Name",
           "date": "2024-01-15",
           "relevance": 0.9
@@ -52,7 +81,9 @@ Return a JSON object with this structure:
       ]
     }
   ]
-}`;
+}
+
+IMPORTANT: Ensure all URLs are complete and accessible. Do not truncate or use incomplete URLs.`;
 
   try {
     const response = await invokeLLM({
@@ -117,9 +148,22 @@ Return a JSON object with this structure:
       const sourceMap = new Map<string, ArgumentSource[]>();
       
       for (const sourceEntry of result.sources) {
+        // Validate and clean URLs before storing
+        const validatedSources = sourceEntry.sources
+          .map(source => ({
+            ...source,
+            url: validateAndCleanUrl(source.url)
+          }))
+          .filter((source): source is ArgumentSource => source.url !== null);
+
+        if (validatedSources.length === 0) {
+          console.warn(`[Analysis] No valid URLs found for argument: ${sourceEntry.argumentId}`);
+          continue;
+        }
+
         const matchingArg = extractedArgs.find(a => a.id === sourceEntry.argumentId);
         if (matchingArg) {
-          sourceMap.set(matchingArg.id, sourceEntry.sources);
+          sourceMap.set(matchingArg.id, validatedSources);
         } else if (sourceEntry.argumentClaim) {
           const claimText = sourceEntry.argumentClaim;
           const claimMatch = extractedArgs.find(a => 
@@ -127,7 +171,7 @@ Return a JSON object with this structure:
             claimText.toLowerCase().includes(a.claim.substring(0, 30).toLowerCase())
           );
           if (claimMatch) {
-            sourceMap.set(claimMatch.id, sourceEntry.sources);
+            sourceMap.set(claimMatch.id, validatedSources);
           }
         }
       }
@@ -137,8 +181,9 @@ Return a JSON object with this structure:
         sources: sourceMap.get(arg.id) || []
       }));
 
+      const validSourceCount = argumentsWithSources.filter((a) => a.sources && a.sources.length > 0).length;
       console.log(
-        `[Analysis] Added sources to ${argumentsWithSources.filter((a) => a.sources && a.sources.length > 0).length} arguments`
+        `[Analysis] Added valid sources to ${validSourceCount} arguments`
       );
       return argumentsWithSources;
     }

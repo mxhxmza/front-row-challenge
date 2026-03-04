@@ -37,3 +37,8 @@
 - [x] Create email template generation function for similar-minded individuals
 - [x] Add email draft modal for similar-minded individuals
 - [x] Test email draft generation for similar-minded individuals
+- [x] Fix broken links in Sources & References section of extracted arguments
+  - Added URL validation to filter truncated URLs
+  - Added HTTPS protocol to URLs without protocol
+  - Added comprehensive tests for URL validation (6 tests passing)
+  - Note: Some LLM-generated URLs may still be invalid; added fallback handling
