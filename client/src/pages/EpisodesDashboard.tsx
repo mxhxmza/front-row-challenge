@@ -900,6 +900,7 @@ export default function EpisodesDashboard() {
   const [selectedIndividual, setSelectedIndividual] = useState<ContrarianIndividual | null>(null);
   const [emailDraft, setEmailDraft] = useState("");
   const [emailCopied, setEmailCopied] = useState(false);
+  const [transcriptCopied, setTranscriptCopied] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   // Analysis mutation for server-side LLM + web search
   const analysisMutation = trpc.analysis.analyze.useMutation({
@@ -1151,6 +1152,18 @@ Outreach Strategy: ${individual.outreachAngle}`;
     setSelectedIndividual(individual);
     setEmailDraft(generateEmailDraft(individual));
     setEmailDraftOpen(true);
+  };
+
+  const copyTranscriptToClipboard = async () => {
+    if (!selectedEpisode?.transcript) return;
+    try {
+      await navigator.clipboard.writeText(selectedEpisode.transcript);
+      setTranscriptCopied(true);
+      toast.success("Transcript copied to clipboard!");
+      setTimeout(() => setTranscriptCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy transcript");
+    }
   };
 
   const handleCopyEmail = () => {
@@ -1566,7 +1579,7 @@ Outreach Strategy: ${individual.outreachAngle}`;
                             {progress < 25 && "Parsing transcript..."}
                             {progress >= 25 && progress < 50 && "Detecting Singlish & cultural context..."}
                             {progress >= 50 && progress < 75 && "Identifying arguments..."}
-                            {progress >= 75 && progress < 90 && "Finding contrarian candidates..."}
+                            {progress >= 75 && progress < 90 && "Finding contrarian and similar candidates..."}
                             {progress >= 90 && "Generating results..."}
                           </p>
                         </div>
@@ -2053,10 +2066,30 @@ Outreach Strategy: ${individual.outreachAngle}`;
                   {/* Transcript */}
                   <Card className="card-glow">
                     <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <FileText className="w-5 h-5" />
-                        Original Transcript
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
+                          Original Transcript
+                        </CardTitle>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={copyTranscriptToClipboard}
+                          className="hover:bg-primary/10"
+                        >
+                          {transcriptCopied ? (
+                            <>
+                              <Check className="w-4 h-4 mr-1 text-green-500" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4 mr-1" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-mono bg-muted/30 p-4 rounded-lg max-h-[300px] overflow-y-auto">

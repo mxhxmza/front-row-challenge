@@ -42,3 +42,5 @@
   - Added HTTPS protocol to URLs without protocol
   - Added comprehensive tests for URL validation (6 tests passing)
   - Note: Some LLM-generated URLs may still be invalid; added fallback handling
+- [x] Update progress message to say "Finding contrarian and similar candidates..."
+- [x] Add copy transcript button to transcript section
