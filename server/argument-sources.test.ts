@@ -81,7 +81,7 @@ describe("Argument Sources - URL Validation", () => {
                   sources: [
                     {
                       title: "Valid Source",
-                      url: "https://www.example.com/full-url",
+                      url: "https://www.nature.com/articles/s41586-023-06169-4",
                       author: "Author",
                       date: "2023-01-01",
                       relevance: 0.9,
@@ -135,7 +135,7 @@ describe("Argument Sources - URL Validation", () => {
                   sources: [
                     {
                       title: "Example Source",
-                      url: "www.example.com/article",
+                      url: "www.arxiv.org/abs/2108.07258",
                       author: "Author",
                       date: "2023-01-01",
                       relevance: 0.9,
@@ -231,7 +231,7 @@ describe("Argument Sources - URL Validation", () => {
                   sources: [
                     {
                       title: "Source",
-                      url: "https://www.example.com/article",
+                      url: "https://www.bbc.com/news/science_and_environment",
                       author: "Author",
                       date: "2023-01-01",
                       relevance: 0.9,
