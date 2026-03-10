@@ -52,3 +52,9 @@
   - Enhanced LLM prompt to only suggest real, well-known sources
   - Created comprehensive test suite (28 tests) for URL validation
   - All 67 tests passing with no broken links in production
+- [x] Remove URLs from Sources & References section
+  - Display only text-based source information (title, author, date)
+  - Eliminate broken link issues entirely
+  - Updated ArgumentSource type to remove URL field
+  - Modified EpisodesDashboard display logic
+  - All 67 tests passing

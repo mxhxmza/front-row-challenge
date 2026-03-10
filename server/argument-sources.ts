@@ -328,7 +328,7 @@ Do not generate fake or hallucinated URLs. Quality over quantity - fewer real so
         // Validate URLs and filter out broken/unreliable ones
         const validatedSources: ArgumentSource[] = [];
         
-        for (const source of sourceEntry.sources) {
+        for (const source of sourceEntry.sources as any) {
           const validUrl = validateUrlFormat(source.url);
           
           if (!validUrl) {
@@ -349,14 +349,17 @@ Do not generate fake or hallucinated URLs. Quality over quantity - fewer real so
             continue;
           }
           
+          // Store source without URL to avoid broken links
           validatedSources.push({
-            ...source,
-            url: validUrl
+            title: source.title,
+            author: source.author,
+            date: source.date,
+            relevance: source.relevance
           });
         }
 
         if (validatedSources.length === 0) {
-          console.warn(`[Analysis] No valid, accessible URLs found for argument: ${sourceEntry.argumentId}`);
+          console.warn(`[Analysis] No valid sources found for argument: ${sourceEntry.argumentId}`);
           continue;
         }
 

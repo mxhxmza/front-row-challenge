@@ -13,7 +13,6 @@ import { extractArgumentSources } from "./argument-sources";
 // Types for extracted data
 export interface ArgumentSource {
   title: string;
-  url: string;
   author?: string;
   date?: string;
   relevance: number;

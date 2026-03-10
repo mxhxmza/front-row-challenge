@@ -1703,17 +1703,7 @@ Outreach Strategy: ${individual.outreachAngle}`;
                                                 {source.date}
                                               </p>
                                             </div>
-                                            {source.url && (
-                                              <a 
-                                                href={source.url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                title={source.url}
-                                                className="shrink-0 p-1.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 transition-all duration-200 group-hover:scale-110"
-                                              >
-                                                <ExternalLink className="w-3.5 h-3.5" />
-                                              </a>
-                                            )}
+
                                           </div>
                                         </div>
                                       ))}
