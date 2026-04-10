@@ -733,6 +733,30 @@ export default function Home() {
         />
       </section>
 
+      {/* Try It Now CTA Section */}
+      <section className="py-24 relative bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10 border-t border-b border-border">
+        <div className="container">
+          <motion.div
+            className="max-w-2xl mx-auto text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6">Ready to discover your next podcast guest?</h2>
+            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+              Start analyzing transcripts and finding contrarian voices and like-minded thinkers today.
+            </p>
+            <Link href="/episodes">
+              <Button size="lg" className="glow-cyan px-12 gap-3 text-lg">
+                Try It Now
+                <ChevronDown className="w-5 h-5" style={{ transform: 'rotate(-90deg)' }} />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-12 border-t border-border">
         <div className="container">
