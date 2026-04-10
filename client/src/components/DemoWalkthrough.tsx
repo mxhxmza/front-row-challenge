@@ -292,22 +292,7 @@ export default function DemoWalkthrough() {
             </Button>
           </div>
 
-          {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="text-center mt-12"
-          >
-            <p className="text-muted-foreground mb-4">
-              Ready to discover your next podcast guest?
-            </p>
-            <Button size="lg" className="gap-2">
-              Try It Now
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </motion.div>
+
         </div>
       </div>
     </section>

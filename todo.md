@@ -63,3 +63,7 @@
   - Button navigates to /episodes (Episodes Dashboard)
   - Styled with cyan glow effect and gradient background
   - Navigation tested and working correctly
+- [x] Remove duplicate CTA section from DemoWalkthrough component
+  - Cleaned up messy inline styles from visual editor
+  - Kept the main Try It Now CTA section on Home page
+  - All 67 tests passing
